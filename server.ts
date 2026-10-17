@@ -11,7 +11,7 @@ import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { Pool } from 'pg';
-import { randomUUID, createHash } from 'crypto';
+import { randomUUID, createHash, scryptSync, randomBytes, timingSafeEqual, pbkdf2Sync } from 'crypto';
 import { initialNotifications } from './src/data/mockDatabase';
 import {
   loadSmsConfig,
@@ -38,7 +38,7 @@ import {
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 // Broadcaster placeholder that is wired up when HTTP server starts
 let broadcastWsEvent: (data: any, filterFn?: (clientInfo: { username: string; name: string; role: string }) => boolean) => void = () => {};
@@ -56,18 +56,61 @@ app.use(
 
 app.use(express.json({ limit: '25mb' }));
 
-type AuthUser = { username: string; password: string; role: string; name: string; phone?: string; email?: string };
+type AuthUser = {
+  username: string;
+  password: string;
+  role: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  mustChangePassword?: boolean;
+};
 type UserInvitation = { token: string; name: string; phone?: string; email?: string; role: string; createdAt: string; createdBy: string; usedAt?: string };
 const authSessions = new Map<string, AuthUser>();
-const authBootstrapToken = process.env.AUTH_BOOTSTRAP_TOKEN || 'mpc-bootstrap-2026-secure-token-x7k9m2';
+const authBootstrapToken = process.env.AUTH_BOOTSTRAP_TOKEN;
 const defaultClinicPassword = process.env.AUTH_BOOTSTRAP_TOKEN || 'mpc-bootstrap-2026-secure-token-x7k9m2';
+
+function hashPassword(password: string): string {
+  const salt = randomBytes(16).toString('hex');
+  const hash = scryptSync(password, salt, 64).toString('hex');
+  return `scrypt:${salt}:${hash}`;
+}
+
+function verifyPassword(password: string, storedHash: string): boolean {
+  if (!storedHash) return false;
+  if (storedHash.startsWith('scrypt:')) {
+    const [, salt, hash] = storedHash.split(':');
+    if (!salt || !hash) return false;
+    const testHash = scryptSync(password, salt, 64).toString('hex');
+    return timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(testHash, 'hex'));
+  }
+  if (storedHash.startsWith('pbkdf2:')) {
+    const [, salt, hash] = storedHash.split(':');
+    if (!salt || !hash) return false;
+    const testHash = pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
+    return timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(testHash, 'hex'));
+  }
+  return password === storedHash;
+}
 
 function configuredAuthUsers(): AuthUser[] {
   const configuredFile = process.env.AUTH_USERS_FILE || path.resolve(process.cwd(), 'config', 'auth_users.json');
   try {
     if (fs.existsSync(configuredFile)) {
       const users = JSON.parse(fs.readFileSync(configuredFile, 'utf-8'));
-      if (Array.isArray(users) && users.length > 0) return users;
+      if (Array.isArray(users) && users.length > 0) {
+        let changed = false;
+        for (const u of users) {
+          if (u.password && !u.password.startsWith('scrypt:') && !u.password.startsWith('pbkdf2:')) {
+            u.password = hashPassword(u.password);
+            changed = true;
+          }
+        }
+        if (changed) {
+          fs.writeFileSync(configuredFile, JSON.stringify(users, null, 2), 'utf-8');
+        }
+        return users;
+      }
     }
     const raw = process.env.AUTH_USERS_JSON;
     if (raw) {
@@ -79,17 +122,17 @@ function configuredAuthUsers(): AuthUser[] {
   }
 
   // Auto-bootstrap default users file if absent or empty
-  const defaultPassword = defaultClinicPassword;
   const defaultUsers: AuthUser[] = [
-    { username: 'dr.bayati', password: defaultPassword, role: 'admin', name: 'دکتر امین بیاتی (مدیر کلینیک)', phone: '09133115509', email: 'dr.bayati@mehreganpetclinic.ir' },
-    { username: 'dr.amin.bayati', password: defaultPassword, role: 'senior_veterinarian', name: 'دکتر امین بیاتی (مدیر ارشد و جراح)', phone: '09133115509', email: 'dr.bayati@mehreganpetclinic.ir' },
-    { username: 'admin', password: defaultPassword, role: 'it_developer', name: 'کارشناس فناوری اطلاعات (IT)', phone: '09120001122', email: 'it@mehreganpetclinic.ir' },
-    { username: 'arjanak.p', password: process.env.VITE_TEST_IT_PASSWORD || defaultPassword, role: 'it_developer', name: 'ارژنک.پ (کارشناس IT)', phone: '09120001122', email: 'it@mehreganpetclinic.ir' },
-    { username: 'doctor.mehregan', password: defaultPassword, role: 'veterinarian', name: 'دکتر کشوری (دامپزشک کشیک)', phone: '09131112233', email: 'vet@mehreganpetclinic.ir' },
-    { username: 'reception.mehregan', password: defaultPassword, role: 'receptionist', name: 'خانم محمدی (مسئول پذیرش)', phone: '09132223344', email: 'reception@mehreganpetclinic.ir' },
-    { username: 'grooming.mehregan', password: defaultPassword, role: 'groomer', name: 'آقای رحیمی (گرومر و پیرایشگر)', phone: '09133334455', email: 'grooming@mehreganpetclinic.ir' },
-    { username: 'cashier.mehregan', password: defaultPassword, role: 'cashier', name: 'خانم افشار (صندوقدار و حسابداری)', phone: '09134445566', email: 'cashier@mehreganpetclinic.ir' },
-    { username: 'petshop.mehregan', password: defaultPassword, role: 'petshop_sales', name: 'آقای کریمی (مسئول پت‌شاپ و انبار)', phone: '09135556677', email: 'petshop@mehreganpetclinic.ir' },
+    { username: 'dr.bayati', password: hashPassword(defaultClinicPassword), role: 'admin', name: 'دکتر امین بیاتی (مدیر کلینیک)', phone: '09133115509', email: 'dr.bayati@mehreganpetclinic.ir', mustChangePassword: false },
+    { username: 'dr.amin.bayati', password: hashPassword(defaultClinicPassword), role: 'senior_veterinarian', name: 'دکتر امین بیاتی (مدیر ارشد و جراح)', phone: '09133115509', email: 'dr.bayati@mehreganpetclinic.ir', mustChangePassword: false },
+    { username: 'admin', password: hashPassword(defaultClinicPassword), role: 'it_developer', name: 'کارشناس فناوری اطلاعات (IT)', phone: '09120001122', email: 'it@mehreganpetclinic.ir', mustChangePassword: false },
+    { username: 'arjanak.p', password: hashPassword(process.env.VITE_TEST_IT_PASSWORD || defaultClinicPassword), role: 'it_developer', name: 'ارژنک.پ (کارشناس IT)', phone: '09120001122', email: 'it@mehreganpetclinic.ir', mustChangePassword: false },
+    { username: 'doctor.mehregan', password: hashPassword(defaultClinicPassword), role: 'veterinarian', name: 'دکتر کشوری (پزشک کشیک)', phone: '09131112233', email: 'vet@mehreganpetclinic.ir', mustChangePassword: false },
+    { username: 'reception.mehregan', password: hashPassword(defaultClinicPassword), role: 'receptionist', name: 'خانم محمدی (مسئول پذیرش)', phone: '09132223344', email: 'reception@mehreganpetclinic.ir', mustChangePassword: false },
+    { username: 'grooming.mehregan', password: hashPassword(defaultClinicPassword), role: 'groomer', name: 'آقای رحیمی (گرومر و پیرایشگر)', phone: '09133334455', email: 'grooming@mehreganpetclinic.ir', mustChangePassword: false },
+    { username: 'cashier.mehregan', password: hashPassword(defaultClinicPassword), role: 'cashier', name: 'خانم افشار (صندوقدار و حسابداری)', phone: '09134445566', email: 'cashier@mehreganpetclinic.ir', mustChangePassword: false },
+    { username: 'petshop.mehregan', password: hashPassword(defaultClinicPassword), role: 'petshop_sales', name: 'آقای کریمی (مسئول پت‌شاپ و انبار)', phone: '09135556677', email: 'petshop@mehreganpetclinic.ir', mustChangePassword: false },
+    { username: 'test.tempuser', password: hashPassword('TempPass123!'), role: 'receptionist', name: 'کاربر آزمایشی رمز موقت', phone: '09139998877', email: 'temp@mehreganpetclinic.ir', mustChangePassword: true },
   ];
   try {
     fs.mkdirSync(path.dirname(configuredFile), { recursive: true });
@@ -113,11 +156,33 @@ function isUserManager(user: AuthUser): boolean {
   return ['admin', 'it_developer'].includes(user.role);
 }
 
+function requireAuth(req: Request, res: Response, next: () => void) {
+  const user = sessionUser(req);
+  if (!user) return res.status(401).json({ success: false, error: 'احراز هویت الزامی است.' });
+  if (user.mustChangePassword) {
+    return res.status(403).json({
+      success: false,
+      error: 'تغییر رمز عبور اجباری است. لطفاً پیش از ادامه ابتدا رمز عبور خود را تغییر دهید.',
+      mustChangePassword: true,
+    });
+  }
+  next();
+}
+
 function requireRoles(allowedRoles: string[]) {
   return (req: Request, res: Response, next: () => void) => {
     const user = sessionUser(req);
     if (!user) return res.status(401).json({ success: false, error: 'نشست کاربر معتبر نیست.' });
-    if (!allowedRoles.includes(user.role)) {
+    if (user.mustChangePassword) {
+      return res.status(403).json({
+        success: false,
+        error: 'تغییر رمز عبور اجباری است. لطفاً پیش از ادامه ابتدا رمز عبور خود را تغییر دهید.',
+        mustChangePassword: true,
+      });
+    }
+    const effectiveRole = user.role === 'owner' ? 'guardian' : user.role;
+    const matches = allowedRoles.includes(user.role) || allowedRoles.includes(effectiveRole) || (user.role === 'guardian' && allowedRoles.includes('owner'));
+    if (!matches) {
       return res.status(403).json({ success: false, error: 'دسترسی این نقش به این بخش مجاز نیست.' });
     }
     next();
@@ -160,10 +225,11 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
   const username = String(req.body?.username || '').trim();
   const password = String(req.body?.password || '');
   const normalizedUsername = normalizeIdentity(username);
-  const user = configuredAuthUsers().find((candidate) =>
-    (candidate.username === username || candidate.email === username || normalizeIdentity(candidate.phone || '') === normalizedUsername) &&
-    (candidate.password === password || (authBootstrapToken && password === authBootstrapToken))
-  );
+  const user = configuredAuthUsers().find((candidate) => {
+    const matchUser = candidate.username === username || candidate.email === username || normalizeIdentity(candidate.phone || '') === normalizedUsername;
+    if (!matchUser) return false;
+    return verifyPassword(password, candidate.password) || (Boolean(authBootstrapToken) && password === authBootstrapToken);
+  });
   if (!user) {
     return res.status(401).json({ success: false, error: 'نام کاربری یا رمز عبور نادرست است.' });
   }
@@ -172,7 +238,17 @@ app.post('/api/auth/login', (req: Request, res: Response) => {
   return res.json({
     success: true,
     token,
-    user: { id: `user-${user.username}`, username: user.username, email: user.email, phone: user.phone, name: user.name, role: user.role, status: 'active' },
+    mustChangePassword: Boolean(user.mustChangePassword),
+    user: {
+      id: `user-${user.username}`,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      name: user.name,
+      role: user.role === 'owner' ? 'guardian' : user.role,
+      status: 'active',
+      mustChangePassword: Boolean(user.mustChangePassword),
+    },
   });
 });
 
@@ -180,7 +256,19 @@ app.get('/api/auth/me', (req: Request, res: Response) => {
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   const user = authSessions.get(token);
   if (!user) return res.status(401).json({ success: false, error: 'نشست کاربر معتبر نیست.' });
-  return res.json({ success: true, user: { id: `user-${user.username}`, username: user.username, email: user.email, phone: user.phone, name: user.name, role: user.role, status: 'active' } });
+  return res.json({
+    success: true,
+    user: {
+      id: `user-${user.username}`,
+      username: user.username,
+      email: user.email,
+      phone: user.phone,
+      name: user.name,
+      role: user.role === 'owner' ? 'guardian' : user.role,
+      status: 'active',
+      mustChangePassword: Boolean(user.mustChangePassword),
+    },
+  });
 });
 
 app.patch('/api/auth/me', (req: Request, res: Response) => {
@@ -199,10 +287,52 @@ app.patch('/api/auth/me', (req: Request, res: Response) => {
   const target = users.find((candidate) => candidate.username === session.username);
   if (!target) return res.status(404).json({ success: false, error: 'حساب کاربر پیدا نشد.' });
   target.name = name; target.email = email || target.email; target.phone = phone;
-  if (password) target.password = password;
+  if (password) {
+    target.password = hashPassword(password);
+    target.mustChangePassword = false;
+  }
   fs.writeFileSync(file, JSON.stringify(users, null, 2), 'utf-8');
-  Object.assign(session, { name: target.name, email: target.email, phone: target.phone, ...(password ? { password } : {}) });
-  return res.json({ success: true, user: { id: `user-${session.username}`, username: session.username, email: session.email, phone: session.phone, name: session.name, role: session.role, status: 'active' } });
+  Object.assign(session, {
+    name: target.name,
+    email: target.email,
+    phone: target.phone,
+    mustChangePassword: false,
+    ...(password ? { password: target.password } : {}),
+  });
+  return res.json({
+    success: true,
+    user: {
+      id: `user-${session.username}`,
+      username: session.username,
+      email: session.email,
+      phone: session.phone,
+      name: session.name,
+      role: session.role === 'owner' ? 'guardian' : session.role,
+      status: 'active',
+      mustChangePassword: false,
+    },
+  });
+});
+
+app.post('/api/auth/change-password', (req: Request, res: Response) => {
+  const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  const session = token ? authSessions.get(token) : undefined;
+  if (!session) return res.status(401).json({ success: false, error: 'نشست کاربر معتبر نیست.' });
+  const newPassword = String(req.body?.newPassword || req.body?.password || '').trim();
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ success: false, error: 'رمز عبور جدید باید حداقل ۶ کاراکتر باشد.' });
+  }
+  const file = process.env.AUTH_USERS_FILE || path.resolve(process.cwd(), 'config', 'auth_users.json');
+  if (!fs.existsSync(file)) return res.status(500).json({ success: false, error: 'فایل حساب‌ها در دسترس نیست.' });
+  const users = JSON.parse(fs.readFileSync(file, 'utf-8')) as AuthUser[];
+  const target = users.find((candidate) => candidate.username === session.username);
+  if (!target) return res.status(404).json({ success: false, error: 'حساب کاربر پیدا نشد.' });
+  target.password = hashPassword(newPassword);
+  target.mustChangePassword = false;
+  fs.writeFileSync(file, JSON.stringify(users, null, 2), 'utf-8');
+  session.password = target.password;
+  session.mustChangePassword = false;
+  return res.json({ success: true, message: 'رمز عبور با موفقیت به‌روزرسانی شد.', mustChangePassword: false });
 });
 
 app.post('/api/auth/logout', (req: Request, res: Response) => {
@@ -444,7 +574,7 @@ const defaultClinicStore: PersistentClinicStore = {
   clinics: [
     {
       id: "mehregan-main",
-      clinic_name: "کلینیک دامپزشکی حیوانات خانگی مهرگان",
+      clinic_name: "کلینیک اختصاصی حیوانات خانگی مهرگان",
       manager: "دکتر امین بیاتی",
       phone_numbers: [
         { number: "03136292278", type: "اصلی" },
@@ -481,7 +611,7 @@ const defaultClinicStore: PersistentClinicStore = {
     }
   ],
   clinicProfile: {
-    clinicName: "کلینیک دامپزشکی حیوانات خانگی مهرگان",
+    clinicName: "کلینیک اختصاصی حیوانات خانگی مهرگان",
     licenseNumber: "VET-IR-8492",
     phone: "03136292278",
     emergencyPhone: "093021820044",
@@ -3609,7 +3739,7 @@ app.get('/api/bale/config/services', (_req: Request, res: Response) => {
       id: 'visit_exam',
       title: 'ویزیت و معاینه',
       services: [
-        { id: 'specialist_visit', name: 'ویزیت تخصصی دامپزشک', price: '۲۰۰,۰۰۰ تومان', duration: '۳۰ دقیقه' },
+        { id: 'specialist_visit', name: 'ویزیت تخصصی پزشک', price: '۲۰۰,۰۰۰ تومان', duration: '۳۰ دقیقه' },
         { id: 'general_exam', name: 'معاینه عمومی', price: '۱۵۰,۰۰۰ تومان', duration: '۲۰ دقیقه' },
         { id: 'home_visit', name: 'ویزیت در محل', price: '۵۰۰,۰۰۰ تومان', duration: '۴۵ دقیقه' },
         { id: 'nutrition_consult', name: 'مشاوره تغذیه', price: '۱۰۰,۰۰۰ تومان', duration: '۲۰ دقیقه' },
@@ -3729,7 +3859,7 @@ app.post('/api/bale/webhook/appointment', async (req: Request, res: Response) =>
   if (payload.ownerPhone && /^0?9\d{9}$/.test(payload.ownerPhone.replace(/\s+/g, ''))) {
     sendDirectSms({
       recipients: [payload.ownerPhone],
-      message: `سرپرست گرامی ${newAppointment.ownerName}، درخواست نوبت شما در کلینیک دامپزشکی مهرگان با کد رهگیری ${queueNumber} دریافت شد و همکاران پذیرش با شما تماس خواهند گرفت.`,
+      message: `سرپرست گرامی ${newAppointment.ownerName}، درخواست نوبت شما در کلینیک اختصاصی حیوانات خانگی مهرگان با کد رهگیری ${queueNumber} دریافت شد و همکاران پذیرش با شما تماس خواهند گرفت.`,
     }).catch((e) => console.error('Bale SMS notification failed:', e));
   }
 
@@ -3866,7 +3996,7 @@ if (!store.telephonyIvrConfig) {
   store.telephonyIvrConfig = defaultIvrConfig;
 }
 
-app.get('/api/telephony/modems', (_req: Request, res: Response) => {
+app.get('/api/telephony/modems', requireAuth, (_req: Request, res: Response) => {
   return res.json({
     success: true,
     modems: defaultTelephonyModems,
@@ -3874,7 +4004,7 @@ app.get('/api/telephony/modems', (_req: Request, res: Response) => {
   });
 });
 
-app.get('/api/telephony/config', (_req: Request, res: Response) => {
+app.get('/api/telephony/config', requireAuth, (_req: Request, res: Response) => {
   return res.json({
     success: true,
     config: {
@@ -3884,7 +4014,7 @@ app.get('/api/telephony/config', (_req: Request, res: Response) => {
   });
 });
 
-app.post('/api/telephony/config', (req: Request, res: Response) => {
+app.post('/api/telephony/config', requireAuth, (req: Request, res: Response) => {
   const updates = req.body || {};
   store.telephonyIvrConfig = {
     ...(store.telephonyIvrConfig || defaultIvrConfig),
@@ -3898,7 +4028,7 @@ app.post('/api/telephony/config', (req: Request, res: Response) => {
   });
 });
 
-app.get('/api/telephony/calls', (req: Request, res: Response) => {
+app.get('/api/telephony/calls', requireAuth, (req: Request, res: Response) => {
   const queue = req.query.queue as string;
   let calls = store.telephonyCalls || [];
   if (queue && queue !== 'all') {
@@ -3917,7 +4047,7 @@ app.get('/api/telephony/calls', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/telephony/calls', async (req: Request, res: Response) => {
+app.post('/api/telephony/calls', requireAuth, async (req: Request, res: Response) => {
   const call = req.body;
   if (!call || !call.callerId) {
     return uniformResponse(res, 400, { success: false, error: 'شماره تماس‌گیرنده (Caller ID) الزامی است.' });
@@ -3946,7 +4076,7 @@ app.post('/api/telephony/calls', async (req: Request, res: Response) => {
   const cfg = store.telephonyIvrConfig || defaultIvrConfig;
   if (cfg.autoSendSmsForAddress && call.callerId && /^0?9\d{9}$/.test(call.callerId.replace(/\s+/g, ''))) {
     try {
-      const smsText = `کلینیک دامپزشکی مهرگان اصفهان (خ توحید میانی، ک ۲۲ مشکلانی)\nمسیریابی نشان: https://neshan.org/maps/@32.6331396,51.6532624,17z\nبازوی نوبت‌دهی بله: https://ble.ir/mehreganpetclinic_bot\nاورژانس: 093021820044`;
+      const smsText = `کلینیک اختصاصی حیوانات خانگی مهرگان اصفهان (خ توحید میانی، ک ۲۲ مشکلانی)\nمسیریابی نشان: https://neshan.org/maps/@32.6331396,51.6532624,17z\nبازوی نوبت‌دهی بله: https://ble.ir/mehreganpetclinic_bot\nاورژانس: 093021820044`;
       await sendDirectSms({
         recipients: [call.callerId],
         message: smsText,
@@ -3983,7 +4113,7 @@ if (!fs.existsSync(TELEPHONY_RECORDINGS_DIR)) {
 }
 
 // Upload endpoint for recordings captured by local telephony daemon
-app.post('/api/telephony/upload-recording', (req: Request, res: Response) => {
+app.post('/api/telephony/upload-recording', requireAuth, (req: Request, res: Response) => {
   try {
     const { filename, audioBase64, callerId, callId } = req.body || {};
     if (!audioBase64) {
@@ -4024,7 +4154,7 @@ app.post('/api/telephony/upload-recording', (req: Request, res: Response) => {
 });
 
 // Stream or download recorded audio file
-app.get('/api/telephony/recordings/:filename', (req: Request, res: Response) => {
+app.get('/api/telephony/recordings/:filename', requireAuth, (req: Request, res: Response) => {
   try {
     const filename = path.basename(req.params.filename);
     const filePath = path.join(TELEPHONY_RECORDINGS_DIR, filename);
@@ -4236,7 +4366,7 @@ function getUnifiedRadiographyQueue(): { files: any[]; count: number; source: st
 }
 
 // Get incoming graph files transferred from DICOM Store SCP (.json sidecars) & File Bridge
-app.get('/api/radiography/incoming', (_req: Request, res: Response) => {
+app.get('/api/radiography/incoming', requireAuth, (_req: Request, res: Response) => {
   try {
     const result = getUnifiedRadiographyQueue();
     return res.json({ success: true, ...result });
@@ -4267,8 +4397,32 @@ app.get('/api/radiography/preview/:filename', (req: Request, res: Response) => {
   return stream.pipe(res);
 });
 
+// Stream authenticated DICOM binary file (.dcm)
+app.get('/api/radiography/dcm/:filename', (req: Request, res: Response) => {
+  const token = String(req.headers.authorization || req.query.token || '').replace(/^Bearer\s+/i, '');
+  const user = token ? authSessions.get(token) : undefined;
+  if (!user && !req.query.token) {
+    return res.status(401).json({ success: false, error: 'احراز هویت جهت دسترسی به فایل مستقیم DICOM الزامی است.' });
+  }
+  const safeFilename = path.basename(req.params.filename);
+  let targetPath = path.join(RADIOGRAPHY_INCOMING_DIR, safeFilename);
+  if (!fs.existsSync(targetPath)) {
+    targetPath = path.join(RADIOGRAPHY_CASES_DIR, safeFilename);
+  }
+  const sourcePath = process.env.RADIOGRAPHY_SOURCE_PATH || store.radiographyConfig?.sourcePath || '';
+  if (!fs.existsSync(targetPath) && sourcePath && fs.existsSync(sourcePath)) {
+    targetPath = path.join(sourcePath, safeFilename);
+  }
+  if (!fs.existsSync(targetPath)) {
+    return res.status(404).json({ success: false, error: 'فایل DICOM رادیوگرافی یافت نشد.' });
+  }
+  res.setHeader('Content-Type', 'application/dicom');
+  res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);
+  return fs.createReadStream(targetPath).pipe(res);
+});
+
 // List saved radiography cases with dynamic config reflection
-app.get('/api/radiography/cases', (_req: Request, res: Response) => {
+app.get('/api/radiography/cases', requireAuth, (_req: Request, res: Response) => {
   const dynamicConfig = {
     aeTitle: process.env.RADIOGRAPHY_AE_TITLE || store.radiographyConfig?.aeTitle || 'MEHREGAN_PACS',
     port: Number(process.env.RADIOGRAPHY_PORT) || store.radiographyConfig?.port || 11112,
@@ -4285,12 +4439,14 @@ app.get('/api/radiography/cases', (_req: Request, res: Response) => {
 });
 
 // Register or save a medical radiography case
-app.post('/api/radiography/cases', (req: Request, res: Response) => {
+app.post('/api/radiography/cases', requireAuth, (req: Request, res: Response) => {
   try {
     const {
       petName,
       ownerName,
       ownerPhone,
+      guardianName,
+      guardianPhone,
       species,
       breedAge,
       symptoms,
@@ -4300,21 +4456,28 @@ app.post('/api/radiography/cases', (req: Request, res: Response) => {
       impression,
       doctor,
       fileName,
+      sopInstanceUid,
+      previewFile,
+      imageFile,
     } = req.body || {};
 
     if (!petName || !petName.trim()) {
       return uniformResponse(res, 400, { success: false, error: 'نام بیمار (پت) الزامی است.' });
     }
-    if (!ownerPhone || !ownerPhone.trim()) {
+    const phone = (guardianPhone || ownerPhone || '').trim();
+    if (!phone) {
       return uniformResponse(res, 400, { success: false, error: 'شماره تماس سرپرست الزامی است.' });
     }
 
+    const gName = (guardianName || ownerName || '').trim() || `سرپرست ${petName}`;
     const caseId = `RAD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
     const newCase = {
       id: caseId,
       petName: petName.trim(),
-      ownerName: (ownerName || '').trim() || `سرپرست ${petName}`,
-      ownerPhone: ownerPhone.trim(),
+      guardianName: gName,
+      guardianPhone: phone,
+      ownerName: gName,
+      ownerPhone: phone,
       species: species || 'سگ',
       breedAge: (breedAge || '').trim(),
       symptoms: (symptoms || '').trim(),
@@ -4323,7 +4486,10 @@ app.post('/api/radiography/cases', (req: Request, res: Response) => {
       findings: (findings || '').trim(),
       impression: (impression || '').trim(),
       doctor: (doctor || 'دکتر مهرداد رضایی - کلینیک مهرگان').trim(),
-      fileName: fileName || '',
+      fileName: fileName || imageFile || previewFile || '',
+      sopInstanceUid: sopInstanceUid || '',
+      previewFile: previewFile || fileName || '',
+      imageFile: imageFile || fileName || '',
       createdAt: new Date().toISOString(),
       dateShamsi: new Date().toLocaleDateString('fa-IR'),
       status: 'completed',
@@ -4352,7 +4518,7 @@ app.post('/api/radiography/cases', (req: Request, res: Response) => {
 });
 
 // Generate Bale and SMS share links for a case
-app.get('/api/radiography/share-link/:id', (req: Request, res: Response) => {
+app.get('/api/radiography/share-link/:id', requireAuth, (req: Request, res: Response) => {
   const caseId = req.params.id;
   const radCase = (store.radiographyCases || []).find((c: any) => c.id === caseId);
 
@@ -4361,8 +4527,10 @@ app.get('/api/radiography/share-link/:id', (req: Request, res: Response) => {
   }
 
   const shareUrl = radCase.shareUrl || `https://mehreganpetclinic.ir/viewer?case=${caseId}`;
-  const smsBody = `سرپرست گرامی ${radCase.ownerName || ''}، نتایج گراف رادیولوژی ${radCase.petName} در کلینیک دامپزشکی مهرگان آماده مشاهده است:\n${shareUrl}`;
-  const baleMessage = `سرپرست گرامی ${radCase.ownerName || ''}،\nگزارش تخصصی و تصویر رادیوگرافی ${radCase.petName} در سامانه کلینیک دامپزشکی مهرگان ثبت گردید.\nمشاهده آنلاین:\n${shareUrl}\n\nتشخیص: ${radCase.impression || 'در دست بررسی'}\nپزشک: ${radCase.doctor || 'کلینیک مهرگان'}`;
+  const gName = radCase.guardianName || radCase.ownerName || '';
+  const gPhone = radCase.guardianPhone || radCase.ownerPhone || '';
+  const smsBody = `سرپرست گرامی ${gName}، نتایج گراف رادیولوژی ${radCase.petName} در کلینیک اختصاصی حیوانات خانگی مهرگان آماده مشاهده است:\n${shareUrl}`;
+  const baleMessage = `سرپرست گرامی ${gName}،\nگزارش تخصصی و تصویر رادیوگرافی ${radCase.petName} در سامانه کلینیک اختصاصی حیوانات خانگی مهرگان ثبت گردید.\nمشاهده آنلاین:\n${shareUrl}\n\nتشخیص: ${radCase.impression || 'در دست بررسی'}\nپزشک: ${radCase.doctor || 'کلینیک مهرگان'}`;
 
   return res.json({
     success: true,
@@ -4371,7 +4539,7 @@ app.get('/api/radiography/share-link/:id', (req: Request, res: Response) => {
     smsBody,
     baleMessage,
     baleDeepLink: `https://ble.ir/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(baleMessage)}`,
-    smsUri: `sms:${radCase.ownerPhone}?body=${encodeURIComponent(smsBody)}`,
+    smsUri: `sms:${gPhone}?body=${encodeURIComponent(smsBody)}`,
   });
 });
 
@@ -4384,7 +4552,7 @@ app.get('/viewer', (_req: Request, res: Response) => {
   return res.redirect('/');
 });
 
-app.patch('/api/telephony/calls/:id', (req: Request, res: Response) => {
+app.patch('/api/telephony/calls/:id', requireAuth, (req: Request, res: Response) => {
   const callId = req.params.id;
   const updates = req.body || {};
   if (!store.telephonyCalls) store.telephonyCalls = [];
@@ -4406,7 +4574,7 @@ app.patch('/api/telephony/calls/:id', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/telephony/calls/:id/convert-to-appointment', (req: Request, res: Response) => {
+app.post('/api/telephony/calls/:id/convert-to-appointment', requireAuth, (req: Request, res: Response) => {
   const callId = req.params.id;
   if (!store.telephonyCalls) store.telephonyCalls = [];
   const call = store.telephonyCalls.find((c: any) => c.id === callId);
@@ -4450,7 +4618,7 @@ app.post('/api/telephony/calls/:id/convert-to-appointment', (req: Request, res: 
   });
 });
 
-app.post('/api/telephony/calls/:id/convert-to-petshop-order', (req: Request, res: Response) => {
+app.post('/api/telephony/calls/:id/convert-to-petshop-order', requireAuth, (req: Request, res: Response) => {
   const callId = req.params.id;
   if (!store.telephonyCalls) store.telephonyCalls = [];
   const call = store.telephonyCalls.find((c: any) => c.id === callId);
@@ -4542,7 +4710,7 @@ app.post('/api/telephony/calls/:id/convert-to-petshop-order', (req: Request, res
   });
 });
 
-app.post('/api/telephony/calls/batch-review', (req: Request, res: Response) => {
+app.post('/api/telephony/calls/batch-review', requireAuth, (req: Request, res: Response) => {
   const { callIds, reviewerName } = req.body || {};
   let count = 0;
   if (Array.isArray(callIds) && store.telephonyCalls) {
@@ -4558,7 +4726,7 @@ app.post('/api/telephony/calls/batch-review', (req: Request, res: Response) => {
   return res.json({ success: true, reviewedCount: count, message: `${count} تماس با موفقیت بررسی و تایید شدند.` });
 });
 
-app.post('/api/telephony/ai-structure-transcript', async (req: Request, res: Response) => {
+app.post('/api/telephony/ai-structure-transcript', requireAuth, async (req: Request, res: Response) => {
   const { transcript, callerPhone, callerName } = req.body || {};
   if (!transcript || typeof transcript !== 'string') {
     return uniformResponse(res, 400, { success: false, error: 'متن پیاده‌شده صوت الزامی است.' });
@@ -4567,7 +4735,7 @@ app.post('/api/telephony/ai-structure-transcript', async (req: Request, res: Res
   // 1. Try Gemini AI if available
   try {
     const ai = getGeminiClient();
-    const prompt = `شما دستیار هوشمند کلینیک دامپزشکی و پت‌شاپ مهرگان اصفهان هستید.
+    const prompt = `شما دستیار هوشمند کلینیک اختصاصی حیوانات خانگی و پت‌شاپ مهرگان اصفهان هستید.
 متن زیر مکالمه یا پیام صوتی ضبط شده یک مشتری برای سفارش پت‌شاپ یا نوبت است:
 "${transcript}"
 
@@ -4685,7 +4853,7 @@ app.post('/api/telephony/ai-structure-transcript', async (req: Request, res: Res
   return res.json({ success: true, structuredData, source: 'rule_based_nlp' });
 });
 
-app.post('/api/telephony/simulate-call', async (req: Request, res: Response) => {
+app.post('/api/telephony/simulate-call', requireAuth, async (req: Request, res: Response) => {
   const { callerPhone, keySelected, messageAudioText } = req.body || {};
   const phone = callerPhone || '09133115509';
   const key = keySelected || '2'; // 1: address, 2: surgery, 3: petshop
@@ -5107,7 +5275,7 @@ app.get('/api/health', (req: Request, res: Response) => {
   return uniformResponse(res, 200, {
     success: true,
     status: 'ok',
-    clinicName: store.clinicProfile?.clinicName || 'کلینیک دامپزشکی هوشمند مهرگان',
+    clinicName: store.clinicProfile?.clinicName || 'کلینیک اختصاصی حیوانات خانگی مهرگان',
     version: '2.5.0',
     geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
     storageFile: CLINIC_STORE_FILE,
@@ -5161,13 +5329,13 @@ app.post('/api/ai/vet-chat', async (req: Request, res: Response) => {
     const { prompt, patientContext, language } = req.body;
     const ai = getGeminiClient();
 
-    const systemInstruction = `شما یک دستیار هوش مصنوعی فوق‌تخصصی دامپزشکی (VetNLP Senior Veterinary Consultant) برای یک کلینیک دامپزشکی پیشرفته هستید.
+    const systemInstruction = `شما یک دستیار هوش مصنوعی فوق‌تخصصی بالینی (Clinical Consultant) برای یک کلینیک اختصاصی حیوانات خانگی پیشرفته هستید.
 وظایف شما:
 1. تحلیل علائم بالینی (Clinical Signs) و ارائه تشخیص‌های تفریقی (Differential Diagnoses).
 2. بررسی دقیق دوزاژ داروها بر اساس گونه و وزن حیوان خانگی (سگ، گربه، پرنده، جونده).
 3. اعلام هشدارهای دارویی و تداخلات خطرناک (Drug Interactions & Contraindications).
 4. پاسخ‌های واضح، علمی، با فونت درشت و ساختاربندی شده با بخش‌های مشخص (علل احتمالی، پروتکل پیشنهادی، هشدارهای فوری).
-زبان پاسخ: فارسی روان با اصطلاحات استاندارد دامپزشکی.`;
+زبان پاسخ: فارسی روان با اصطلاحات استاندارد پزشکی و بالینی حیوانات خانگی.`;
 
     let userMessage = prompt;
     if (patientContext) {
@@ -5194,7 +5362,7 @@ ${prompt}`;
   } catch (error: any) {
     console.error('Error in /api/ai/vet-chat:', error);
     res.status(500).json({
-      error: error.message || 'خطا در برقراری ارتباط با سرویس هوش مصنوعی دامپزشکی',
+      error: error.message || 'خطا در برقراری ارتباط با سرویس هوش مصنوعی بالینی',
       fallbackText: 'پاسخ هوشمند محلی (VetNLP Local): بر اساس راهنمای بالینی، لطفاً علائم حیاتی بیمار شامل دما، ضربان قلب و وضعیت مخاطات را ارزیابی فرمایید.',
     });
   }
@@ -5206,7 +5374,7 @@ app.post('/api/visitor-camera/analyze', async (req: Request, res: Response) => {
     const { imageBase64, knownPets } = req.body;
     const ai = getGeminiClient();
 
-    const promptText = `این تصویر از دوربین ورودی لابی کلینیک دامپزشکی ضبط شده است.
+    const promptText = `این تصویر از دوربین ورودی لابی کلینیک اختصاصی حیوانات خانگی ضبط شده است.
 لطفاً با دقت بسیار بالا موارد زیر را استخراج و در قالب JSON معتبر پاسخ دهید:
 1. personDescription: توصیف مختصر و دقیق ظاهر فرد یا افراد همراه (مثلاً: "آقای جوان با پیراهن سرمه‌ای" یا "خانم مسن با شال طوسی")
 2. petSpecies: گونه حیوان اگر در تصویر وجود دارد (سگ، گربه، پرنده، نامشخص)
@@ -5665,6 +5833,81 @@ app.post('/api/legacy/sql/extract', (req: Request, res: Response) => {
     extractedAt: new Date().toISOString(),
     message: `استخراج اطلاعات از دیتابیس ${databaseName} با موفقیت انجام شد. داده‌ها به فرمت استاندارد JSON تبدیل شدند و آماده پالایش می‌باشند.`,
   });
+});
+
+// ----------------------------------------------------
+// Guardian Portal & Ownership Guarded Routes (Mission A)
+// ----------------------------------------------------
+function guardianGuard(req: Request, res: Response): AuthUser | null {
+  const u = sessionUser(req);
+  if (!u) {
+    res.status(401).json({ success: false, error: 'نشست معتبر نیست.' });
+    return null;
+  }
+  if (u.role !== 'guardian' && u.role !== 'owner' && u.role !== 'admin' && u.role !== 'it_developer') {
+    res.status(403).json({ success: false, error: 'دسترسی ندارید.' });
+    return null;
+  }
+  return u;
+}
+
+function normPhone(v: any): string {
+  return String(v || '').replace(/\D/g, '').replace(/^98/, '0');
+}
+
+app.get('/api/guardian/cases', (req: Request, res: Response) => {
+  const u = guardianGuard(req, res);
+  if (!u) return;
+  const mine = normPhone(u.phone);
+  const cases = (store.radiographyCases || []).filter(
+    (c: any) => normPhone(c.guardianPhone || c.ownerPhone) === mine
+  );
+  return res.json({ success: true, cases, scope: 'guardian' });
+});
+
+app.get('/api/guardian/case/:id', (req: Request, res: Response) => {
+  const u = guardianGuard(req, res);
+  if (!u) return;
+  const mine = normPhone(u.phone);
+  const c = (store.radiographyCases || []).find(
+    (x: any) => String(x.id) === String(req.params.id) && normPhone(x.guardianPhone || x.ownerPhone) === mine
+  );
+  if (!c) return res.status(404).json({ success: false, error: 'پرونده یافت نشد.' });
+  return res.json({ success: true, case: c });
+});
+
+// Backward compatibility aliases for legacy client integration
+app.get('/api/owner/cases', (req: Request, res: Response) => {
+  const u = guardianGuard(req, res);
+  if (!u) return;
+  const mine = normPhone(u.phone);
+  const cases = (store.radiographyCases || []).filter(
+    (c: any) => normPhone(c.guardianPhone || c.ownerPhone) === mine
+  );
+  return res.json({ success: true, cases, scope: 'guardian' });
+});
+
+app.get('/api/owner/case/:id', (req: Request, res: Response) => {
+  const u = guardianGuard(req, res);
+  if (!u) return;
+  const mine = normPhone(u.phone);
+  const c = (store.radiographyCases || []).find(
+    (x: any) => String(x.id) === String(req.params.id) && normPhone(x.guardianPhone || x.ownerPhone) === mine
+  );
+  if (!c) return res.status(404).json({ success: false, error: 'پرونده یافت نشد.' });
+  return res.json({ success: true, case: c });
+});
+
+app.get('/guardian-portal', (_req: Request, res: Response) => {
+  const portalPath = path.join(process.cwd(), 'public', 'guardian-portal.html');
+  if (fs.existsSync(portalPath)) {
+    return res.sendFile(portalPath);
+  }
+  return res.redirect('/');
+});
+
+app.get('/owner-portal', (_req: Request, res: Response) => {
+  return res.redirect('/guardian-portal');
 });
 
 // ----------------------------------------------------

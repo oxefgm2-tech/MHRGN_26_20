@@ -498,7 +498,7 @@ export const PetShopMdiTab: React.FC<PetShopMdiTabProps> = ({
 
                 {activeTab.type === 'customer_sale' && (
                   <div>
-                    <label className="block text-[11px] font-bold text-[#738A6E] mb-1">صاحب فاکتور / مشتری</label>
+                    <label className="block text-[11px] font-bold text-[#738A6E] mb-1">مشتری / سرپرست فاکتور / مشتری</label>
                     <select
                       value={activeTab.customerName || ''}
                       onChange={(e) => {

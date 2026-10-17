@@ -2,13 +2,14 @@ export type UserRole =
   | 'admin'               // مدیر ارشد کلینیک
   | 'senior_veterinarian' // مدیر ارشد و پزشک ارشد
   | 'it_developer'        // کارشناس آی‌تی و توسعه‌دهنده سیستم
-  | 'veterinarian'        // دامپزشک
+  | 'veterinarian'        // دامپزشک / پزشک معالج
   | 'groomer'             // آرایشگر
   | 'receptionist'        // پذیرش
   | 'cashier'             // صندوقدار
   | 'petshop_purchasing'  // مسئول خرید پت‌شاپ
   | 'petshop_sales'       // مسئول فروش پت‌شاپ
-  | 'owner'               // صاحب حیوان
+  | 'guardian'            // سرپرست حیوان خانگی
+  | 'owner'               // سرپرست حیوان خانگی (سازگاری داده‌ای)
   | 'pet'                 // نقش خود پت (تجربه حسی و سرگرمی پت)
   | 'visitor'             // رهگذر / متقاضی دسترسی ورودی
   | 'third_party_partner'; // همکار بیرونی (داگ‌واکر، پانسیون، فروشنده)
@@ -70,6 +71,8 @@ export interface Owner {
   isDemo?: boolean;
   isVerified?: boolean;
 }
+
+export type Guardian = Owner;
 
 export interface PrescriptionItem {
   id: string;

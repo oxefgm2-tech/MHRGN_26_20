@@ -122,7 +122,8 @@ export const Navbar: React.FC<NavbarProps> = ({
     { role: 'cashier', title: 'صندوقدار' },
     { role: 'petshop_purchasing', title: 'مسئول خرید پت‌شاپ' },
     { role: 'petshop_sales', title: 'مسئول فروش پت‌شاپ' },
-    { role: 'owner', title: 'صاحب پت' },
+    { role: 'guardian', title: 'سرپرست حیوان خانگی' },
+    { role: 'owner', title: 'سرپرست حیوان خانگی (سازگاری)' },
   ];
 
   return (

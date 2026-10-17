@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>پورتال اختصاصی سرپرست حیوانات خانگی | کلینیک اختصاصی حیوانات خانگی مهرگان</title>
+  <style>
+    :root {
+      --primary: #1B4D3E;
+      --primary-light: #2D6A4F;
+      --accent: #E76F51;
+      --bg: #F8FAF7;
+      --card-bg: #FFFFFF;
+      --border: #E2E8F0;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --success: #16A34A;
+      --danger: #DC2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, Arial, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 50px; font-size: 14px; min-height: 100vh; }
+    
+    .topbar { background: var(--primary); color: white; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .topbar-title { display: flex; align-items: center; gap: 12px; }
+    .topbar-title h1 { font-size: 17px; font-weight: 800; }
+    .badge-portal { background: rgba(255,255,255,0.18); color: #E8F5E9; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    
+    .btn-logout { background: transparent; border: 1px solid rgba(255,255,255,0.4); color: white; padding: 6px 14px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: 0.15s; }
+    .btn-logout:hover { background: rgba(255,255,255,0.15); }
+
+    .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+
+    /* Login Card */
+    .auth-card { max-width: 440px; margin: 60px auto; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.06); padding: 28px; }
+    .auth-header { text-align: center; margin-bottom: 24px; }
+    .auth-header h2 { font-size: 19px; color: var(--primary); font-weight: 800; margin-bottom: 8px; }
+    .auth-header p { font-size: 13px; color: var(--text-muted); }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px; }
+    .form-control { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13.5px; background: #FAFBF9; transition: border-color 0.15s; }
+    .form-control:focus { outline: none; border-color: var(--primary); background: white; }
+    .btn-primary { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.15s; }
+    .btn-primary:hover { background: #13392E; }
+
+    .alert { padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+    .alert-error { background: #FEE2E2; color: #991B1B; border: 1px solid #F87171; }
+    .alert-info { background: #E0F2FE; color: #075985; border: 1px solid #7DD3FC; }
+
+    /* Dashboard */
+    .dashboard-view { display: none; }
+    .welcome-banner { background: white; border-radius: 12px; border: 1px solid var(--border); padding: 20px 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .welcome-text h2 { font-size: 18px; color: var(--primary); font-weight: 800; }
+    .welcome-text p { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    
+    .cases-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+    .case-card { background: white; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(0,0,0,0.03); overflow: hidden; transition: transform 0.15s, box-shadow 0.15s; display: flex; flex-direction: column; }
+    .case-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: var(--primary-light); }
+    .case-img-box { height: 180px; background: #090D16; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+    .case-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .case-body { padding: 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .case-title { font-size: 15px; font-weight: 800; color: var(--primary); margin-bottom: 6px; }
+    .case-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.6; }
+    .case-finding { background: #F8FAF9; padding: 10px; border-radius: 6px; border-right: 3px solid var(--primary); font-size: 12.5px; color: #334155; margin-bottom: 14px; }
+    
+    .btn-view-graph { background: var(--accent); color: white; text-decoration: none; padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: bold; text-align: center; display: block; transition: 0.15s; }
+    .btn-view-graph:hover { background: #D65A3C; }
+
+    .empty-state { text-align: center; padding: 60px 20px; background: white; border-radius: 12px; border: 1px solid var(--border); }
+    .empty-state div { font-size: 40px; margin-bottom: 12px; }
+    .empty-state h3 { font-size: 16px; color: var(--primary); font-weight: 700; margin-bottom: 6px; }
+    .empty-state p { font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="topbar">
+    <div class="topbar-title">
+      <h1>کلینیک اختصاصی حیوانات خانگی مهرگان</h1>
+      <span class="badge-portal">پورتال اختصاصی سرپرست</span>
+    </div>
+    <div id="authActions" style="display: none;">
+      <button class="btn-logout" onclick="logout()">خروج از حساب</button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Auth / Login View -->
+    <div id="loginView" class="auth-card">
+      <div class="auth-header">
+        <div style="font-size: 40px; margin-bottom: 10px;">🐾</div>
+        <h2>ورود به پورتال سرپرست</h2>
+        <p>مشاهده سوابق و پرونده‌های رادیوگرافی پت‌های تحت سرپرستی</p>
+      </div>
+
+      <div id="loginAlert" class="alert alert-error"></div>
+
+      <div class="form-group">
+        <label>شماره همراه سرپرست یا نام کاربری:</label>
+        <input type="text" id="txtUsername" class="form-control" placeholder="مثال: 09133115509" dir="ltr" />
+      </div>
+
+      <div class="form-group">
+        <label>کلمه عبور:</label>
+        <input type="password" id="txtPassword" class="form-control" placeholder="رمز عبور..." />
+      </div>
+
+      <button class="btn-primary" onclick="login()">ورود به سامانه</button>
+      
+      <p style="font-size: 11.5px; color: var(--text-muted); text-align: center; margin-top: 16px; line-height: 1.5;">
+        * جهت دریافت رمز عبور یا دسترسی اولیه، با پذیرش کلینیک تماس حاصل فرمایید.
+      </p>
+    </div>
+
+    <!-- Guardian Dashboard View -->
+    <div id="dashboardView" class="dashboard-view">
+      
+      <div class="welcome-banner">
+        <div class="welcome-text">
+          <h2 id="guardianGreeting">سرپرست گرامی، خوش آمدید</h2>
+          <p>در این بخش پرونده‌ها و گراف‌های رادیولوژی ثبت‌شده پت‌های شما در کلینیک اختصاصی مهرگان نمایش داده می‌شود.</p>
+        </div>
+        <button class="btn-primary" style="width: auto; padding: 8px 16px;" onclick="loadGuardianCases()">
+          🔄 بروزرسانی پرونده‌ها
+        </button>
+      </div>
+
+      <div id="casesList" class="cases-grid">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div id="emptyCases" class="empty-state" style="display: none;">
+        <div>🩻</div>
+        <h3>هیچ پرونده رادیوگرافی ثبت‌شده‌ای یافت نشد</h3>
+        <p>پرونده‌های رادیولوژی پس از ثبت در کلینیک به صورت خودکار بر اساس شماره موبایل سرپرست در این بخش قرار می‌گیرند.</p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    var currentToken = localStorage.getItem('guardian_token') || localStorage.getItem('clinic_auth_token') || '';
+    var currentUser = null;
+
+    function init() {
+      if (currentToken) {
+        checkSession();
+      } else {
+        showLogin();
+      }
+    }
+
+    function showLogin() {
+      document.getElementById('loginView').style.display = 'block';
+      document.getElementById('dashboardView').style.display = 'none';
+      document.getElementById('authActions').style.display = 'none';
+    }
+
+    function showDashboard() {
+      document.getElementById('loginView').style.display = 'none';
+      document.getElementById('dashboardView').style.display = 'block';
+      document.getElementById('authActions').style.display = 'block';
+      if (currentUser && currentUser.name) {
+        document.getElementById('guardianGreeting').innerText = 'سرپرست گرامی ' + currentUser.name + '، خوش آمدید';
+      }
+      loadGuardianCases();
+    }
+
+    function checkSession() {
+      fetch('/api/auth/me', {
+        headers: { 'Authorization': 'Bearer ' + currentToken }
+      })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Session invalid');
+        return res.json();
+      })
+      .then(function(data) {
+        currentUser = data.user;
+        showDashboard();
+      })
+      .catch(function(err) {
+        localStorage.removeItem('guardian_token');
+        currentToken = '';
+        showLogin();
+      });
+    }
+
+    function login() {
+      var username = document.getElementById('txtUsername').value.trim();
+      var password = document.getElementById('txtPassword').value.trim();
+      var alertBox = document.getElementById('loginAlert');
+      alertBox.style.display = 'none';
+
+      if (!username || !password) {
+        alertBox.innerText = 'لطفاً شماره همراه/نام کاربری و کلمه عبور را وارد فرمایید.';
+        alertBox.style.display = 'block';
+        return;
+      }
+
+      fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, password: password })
+      })
+      .then(function(res) {
+        return res.json().then(function(data) {
+          if (!res.ok) throw new Error(data.error || 'خطا در ورود به حساب');
+          return data;
+        });
+      })
+      .then(function(data) {
+        currentToken = data.token;
+        currentUser = data.user;
+        localStorage.setItem('guardian_token', currentToken);
+        showDashboard();
+      })
+      .catch(function(err) {
+        alertBox.innerText = err.message || 'نام کاربری یا رمز عبور نامعتبر است.';
+        alertBox.style.display = 'block';
+      });
+    }
+
+    function logout() {
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + currentToken }
+      }).finally(function() {
+        localStorage.removeItem('guardian_token');
+        currentToken = '';
+        currentUser = null;
+        showLogin();
+      });
+    }
+
+    function loadGuardianCases() {
+      var container = document.getElementById('casesList');
+      var emptyBox = document.getElementById('emptyCases');
+      container.innerHTML = '<div style="text-align:center; padding:30px; grid-column:1/-1;">در حال بارگذاری پرونده‌ها...</div>';
+      emptyBox.style.display = 'none';
+
+      fetch('/api/guardian/cases', {
+        headers: { 'Authorization': 'Bearer ' + currentToken }
+      })
+      .then(function(res) {
+        if (!res.ok) throw new Error('خطا در دریافت پرونده‌های سرپرست');
+        return res.json();
+      })
+      .then(function(data) {
+        container.innerHTML = '';
+        var cases = data.cases || [];
+        if (cases.length === 0) {
+          emptyBox.style.display = 'block';
+          return;
+        }
+
+        cases.forEach(function(c) {
+          var card = document.createElement('div');
+          card.className = 'case-card';
+
+          var previewUrl = c.previewFile
+            ? '/api/radiography/preview/' + encodeURIComponent(c.previewFile)
+            : (c.fileName ? '/api/radiography/preview/' + encodeURIComponent(c.fileName.replace(/\.dcm$/i, '.png')) : '');
+
+          var viewerUrl = '/viewer?case=' + encodeURIComponent(c.id) + '&pet=' + encodeURIComponent(c.petName);
+
+          card.innerHTML = 
+            '<div class="case-img-box">' +
+              (previewUrl
+                ? '<img src="' + previewUrl + '" class="case-img" alt="گراف رادیولوژی" onerror="this.src=\'data:image/svg+xml;utf8,<svg xmlns=\\\'http://www.w3.org/2000/svg\\\' width=\\\'300\\\' height=\\\'180\\\' viewBox=\\\'0 0 300 180\\\'><rect width=\\\'300\\\' height=\\\'180\\\' fill=\\\'%23050810\\\'/><text x=\\\'20\\\' y=\\\'90\\\' fill=\\\'%2338BDF8\\\' font-family=\\\'sans-serif\\\' font-size=\\\'12\\\'>گراف رادیوگرافی تخصصی</text></svg>\'"/>'
+                : '<div style="color:#94A3B8; font-size:12px;">پیش‌نمایش در دسترس نیست</div>') +
+            '</div>' +
+            '<div class="case-body">' +
+              '<div>' +
+                '<div class="case-title">بیمار: ' + c.petName + ' (' + (c.species || 'حیوان خانگی') + ')</div>' +
+                '<div class="case-meta">' +
+                  '<span>کد پرونده: <strong>' + c.id + '</strong></span><br/>' +
+                  '<span>ناحیه: ' + (c.anatomy || 'عمومی') + ' | نما: ' + (c.projection || 'Lateral') + '</span><br/>' +
+                  '<span>تاریخ: ' + (c.dateShamsi || c.createdAt?.slice(0, 10)) + '</span>' +
+                '</div>' +
+                (c.impression ? '<div class="case-finding"><strong>تشخیص رادیولوژیست:</strong> ' + c.impression + '</div>' : '') +
+              '</div>' +
+              '<a href="' + viewerUrl + '" target="_blank" class="btn-view-graph">🔍 مشاهده تصویر در نمایشگر تخصصی</a>' +
+            '</div>';
+
+          container.appendChild(card);
+        });
+      })
+      .catch(function(err) {
+        container.innerHTML = '<div style="color:#DC2626; text-align:center; padding:30px; grid-column:1/-1;">' + err.message + '</div>';
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

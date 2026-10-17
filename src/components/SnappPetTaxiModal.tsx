@@ -71,7 +71,7 @@ export const SnappPetTaxiModal: React.FC<SnappPetTaxiModalProps> = ({
     if (hasPetCarrierBox) {
       note += ' درون باکس حمل استاندارد و تمیز قرار دارد.';
     } else {
-      note += ' با قلاده و پتوی بهداشتی بوده و مسئولیت نظافت کامل با صاحب پت است.';
+      note += ' با قلاده و پتوی بهداشتی بوده و مسئولیت نظافت کامل با سرپرست پت است.';
     }
     if (!accompanyingHuman) {
       note += ' (پت بدون همراه انسان اعزام می‌شود و تحویل گیرنده در مقصد پرسنل پذیرش کلینیک مهرگان خواهند بود).';
@@ -96,7 +96,7 @@ export const SnappPetTaxiModal: React.FC<SnappPetTaxiModalProps> = ({
         id: `snapp-${Date.now()}`,
         petId: selectedPetId,
         petName: selectedPet?.name || 'پت',
-        ownerName: selectedOwner?.name || 'صاحب پت',
+        ownerName: selectedOwner?.name || 'سرپرست پت',
         ownerPhone: passengerMobile,
         pickupAddress,
         pickupCoordinates: { lat: 32.6105, lng: 51.6680 },

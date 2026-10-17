@@ -224,7 +224,7 @@ export async function fetchAndExportLegacyVetData() {
   return result;
 }`;
         setLatestGeneratedCode(generated);
-        setLatestExplanation('ایجنت توسعه‌دهنده به سرور SQL Server قدیمی با نام VET-LEGACY-SRV و دیتابیس VetClinicDB_2019 متصل شد. جداول بیماران، مالکان و ویزیت‌ها شناسایی شدند. شما می‌توانید از تب «کاشف دیتابیس SQL Server قدیمی» جداول را مستقیماً استخراج و به جیسون تبدیل فرمایید.');
+        setLatestExplanation('ایجنت توسعه‌دهنده به سرور SQL Server قدیمی با نام VET-LEGACY-SRV و دیتابیس VetClinicDB_2019 متصل شد. جداول بیماران، سرپرستان و ویزیت‌ها شناسایی شدند. شما می‌توانید از تب «کاشف دیتابیس SQL Server قدیمی» جداول را مستقیماً استخراج و به جیسون تبدیل فرمایید.');
         setIsAIGenerating(false);
         onExecuteAIPrompt(textToRun, activeFile.id);
       }, 800);

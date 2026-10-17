@@ -321,7 +321,7 @@ ${attText}
                       <span className="text-[10px] font-normal text-slate-500">({pet.breed})</span>
                     </div>
                     <div className="text-[10px] text-slate-500 truncate">
-                      مالک: {pet.ownerName} • {pet.checkInTime || 'امروز'}
+                      سرپرست: {pet.ownerName} • {pet.checkInTime || 'امروز'}
                     </div>
                   </div>
                 </div>
@@ -352,7 +352,7 @@ ${attText}
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="جستجو در نام بیمار، صاحب، تشخیص پزشکی یا شرح حال..."
+              placeholder="جستجو در نام بیمار، سرپرست، تشخیص پزشکی یا شرح حال..."
               className="w-full bg-slate-50 border border-slate-200 rounded-2xl pr-10 pl-4 py-2 text-xs text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 font-medium"
             />
           </div>

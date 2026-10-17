@@ -424,7 +424,7 @@ export const VoiceSecretaryModal: React.FC<VoiceSecretaryModalProps> = ({
 
     if (actionId === 'schedule_surgery_deposit') {
       onCreateAppointment(targetPet.id, 'رزرو نوبت جراحی تخصصی (با بیعانه ۲,۰۰۰,۰۰۰ تومان)');
-      const msg = `نوبت جراحی برای «${targetPet.name}» در صف ثبت شد. لینک پرداخت بیعانه ۲,۰۰۰,۰۰۰ تومانی شاپرک/بله برای مالک (${targetPet.ownerPhone}) پیامک گردید.`;
+      const msg = `نوبت جراحی برای «${targetPet.name}» در صف ثبت شد. لینک پرداخت بیعانه ۲,۰۰۰,۰۰۰ تومانی شاپرک/بله برای سرپرست (${targetPet.ownerPhone}) پیامک گردید.`;
       setExecutionSuccessMessage(msg);
       speakPersianFeedback(`نوبت جراحی با بیعانه برای ${targetPet.name} ثبت شد و لینک پرداخت ارسال گردید.`);
     } else if (actionId === 'immediate_surgery_service') {
@@ -712,7 +712,7 @@ export const VoiceSecretaryModal: React.FC<VoiceSecretaryModalProps> = ({
                       {parsedIntent.matchedPet.name} • {parsedIntent.matchedPet.breed}
                     </div>
                     <div className="text-[#5C7457]">
-                      مالک: {parsedIntent.matchedPet.ownerName} | وضعیت در کلینیک:{' '}
+                      سرپرست: {parsedIntent.matchedPet.ownerName} | وضعیت در کلینیک:{' '}
                       <span className="text-[#4A6741] font-bold">
                         {parsedIntent.matchedPet.statusInClinic === 'waiting' && 'در اتاق انتظار'}
                         {parsedIntent.matchedPet.statusInClinic === 'in_boarding' && 'بستری در پانسیون'}

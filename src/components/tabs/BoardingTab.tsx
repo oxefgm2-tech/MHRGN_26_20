@@ -143,7 +143,7 @@ export const BoardingTab: React.FC<BoardingTabProps> = ({
               </div>
             </div>
             <p className="text-xs text-[#5C7457]">
-              چک‌لیست وظایف روتین، ثبت یادداشت صوتی و عکس گزارش برای صاحبان
+              چک‌لیست وظایف روتین، ثبت یادداشت صوتی و عکس گزارش برای سرپرستان
             </p>
           </div>
         </div>
@@ -281,7 +281,7 @@ export const BoardingTab: React.FC<BoardingTabProps> = ({
                               setMemoText('غذا طبق دستور میل شد و حال عمومی کاملاً مساعد است.');
                             }}
                             className="p-1.5 text-[#5C7457] hover:text-[#4A6741] hover:bg-white rounded-lg transition-colors cursor-pointer"
-                            title="ثبت یادداشت صوتی و عکس برای صاحب حیوان"
+                            title="ثبت یادداشت صوتی و عکس برای سرپرست حیوان"
                           >
                             <Mic className="w-4 h-4" />
                           </button>
@@ -326,7 +326,7 @@ export const BoardingTab: React.FC<BoardingTabProps> = ({
                 >
                   {pets.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} ({p.breed}) • مالک: {p.ownerName}
+                      {p.name} ({p.breed}) • سرپرست: {p.ownerName}
                     </option>
                   ))}
                 </select>
@@ -423,7 +423,7 @@ export const BoardingTab: React.FC<BoardingTabProps> = ({
                 onClick={handleSaveVoiceMemo}
                 className="px-5 py-2 bg-[#4A6741] hover:bg-[#3D5535] text-white rounded-xl text-xs font-bold shadow-xs transition-all active:scale-95"
               >
-                ثبت و ارسال به پورتال صاحب
+                ثبت و ارسال به پورتال سرپرست
               </button>
             </div>
           </div>

@@ -237,7 +237,7 @@ export const ReceptionPetsTab: React.FC<ReceptionPetsTabProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="جستجوی سریع پرونده با نام حیوان، نام مالک، شماره موبایل یا شماره میکروچیپ..."
+              placeholder="جستجوی سریع پرونده با نام حیوان، نام سرپرست، شماره موبایل یا شماره میکروچیپ..."
               className="w-full bg-[#F7F8F3] border border-[#E6E9DF] rounded-2xl pr-10 pl-4 py-2.5 text-xs text-[#2D3A27] placeholder-[#5C7457]/70 focus:outline-hidden focus:ring-2 focus:ring-[#4A6741] focus:bg-white transition-all font-medium"
             />
           </div>
@@ -434,7 +434,7 @@ export const ReceptionPetsTab: React.FC<ReceptionPetsTabProps> = ({
                   <div className="flex items-center justify-between text-[#5C7457]">
                     <span className="flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-[#5C7457]" />
-                      <span>مالک: {pet.ownerName}</span>
+                      <span>سرپرست: {pet.ownerName}</span>
                     </span>
                     <span className="font-mono text-[#2D3A27] font-bold">{pet.ownerPhone}</span>
                   </div>
@@ -888,10 +888,10 @@ export const ReceptionPetsTab: React.FC<ReceptionPetsTabProps> = ({
 
               {/* Owner Info */}
               <div className="pt-3 border-t border-[#E6E9DF]">
-                <h4 className="font-black text-[#2D3A27] mb-2">مشخصات صاحب / همراه</h4>
+                <h4 className="font-black text-[#2D3A27] mb-2">مشخصات سرپرست / همراه</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-bold text-[#2D3A27] mb-1">نام و نام خانوادگی مالک *</label>
+                    <label className="block font-bold text-[#2D3A27] mb-1">نام و نام خانوادگی سرپرست *</label>
                     <input
                       type="text"
                       required
@@ -1060,7 +1060,7 @@ export const ReceptionPetsTab: React.FC<ReceptionPetsTabProps> = ({
 
                 {/* Owner Information */}
                 <div className="p-4 bg-[#F7F8F3] border border-[#E6E9DF] rounded-2xl space-y-2">
-                  <h4 className="font-black text-[#2D3A27]">اطلاعات سرپرست و مالک:</h4>
+                  <h4 className="font-black text-[#2D3A27]">اطلاعات سرپرست:</h4>
                   <div className="space-y-1 text-[#2D3A27]">
                     <div>
                       <strong>نام:</strong> {activePetDrawer.ownerName}

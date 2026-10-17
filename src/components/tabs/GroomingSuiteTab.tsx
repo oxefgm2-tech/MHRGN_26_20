@@ -104,7 +104,7 @@ export const GroomingSuiteTab: React.FC<GroomingSuiteTabProps> = ({
         invoiceId: `inv-${Date.now()}`,
         invoiceNumber: `INV-1403-${Math.floor(1000 + Math.random() * 9000)}`,
         petName: pet.name,
-        ownerName: owner?.name || 'صاحب پت',
+        ownerName: owner?.name || 'سرپرست پت',
         targetStaffId: 'u-4',
         targetStaffName: 'آقای سهراب منصوری',
         targetStaffRole: 'آرایشگر و گرومر',
@@ -242,7 +242,7 @@ export const GroomingSuiteTab: React.FC<GroomingSuiteTabProps> = ({
                       <div>
                         <h3 className="text-sm font-bold text-[#2D3A27]">{pet.name}</h3>
                         <p className="text-xs text-[#5C7457]">
-                          {pet.species} - {pet.breed} | صاحب: {owner?.name}
+                          {pet.species} - {pet.breed} | سرپرست: {owner?.name}
                         </p>
                       </div>
                     </div>
@@ -395,7 +395,7 @@ export const GroomingSuiteTab: React.FC<GroomingSuiteTabProps> = ({
                     </p>
                   </div>
                   <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-bold">
-                    تایید رضایت صاحب پت
+                    تایید رضایت سرپرست پت
                   </span>
                 </div>
 
@@ -418,7 +418,7 @@ export const GroomingSuiteTab: React.FC<GroomingSuiteTabProps> = ({
                 <div className="flex items-center justify-between text-xs text-[#738A6E] pt-1">
                   <span>تاریخ تکمیل: {item.completedDate}</span>
                   <span className="text-emerald-700 font-bold flex items-center gap-1">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> تایید مدیر و صاحب پت
+                    <CheckCircle2 className="w-3.5 h-3.5" /> تایید مدیر و سرپرست پت
                   </span>
                 </div>
               </div>
@@ -451,7 +451,7 @@ export const GroomingSuiteTab: React.FC<GroomingSuiteTabProps> = ({
               <div>
                 <h4 className="text-xs font-bold text-amber-950">استعلام و پیامک در هر بار اصلاح (Ask Every Time)</h4>
                 <p className="text-[11px] text-amber-800 mt-1">
-                  سامانه به صورت پیامک عکس را برای صاحب پت ارسال کرده و با پاسخ عدد ۱ تایید انتشار دریافت می‌شود.
+                  سامانه به صورت پیامک عکس را برای سرپرست پت ارسال کرده و با پاسخ عدد ۱ تایید انتشار دریافت می‌شود.
                 </p>
               </div>
             </div>

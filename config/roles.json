@@ -17,7 +17,7 @@
     },
     {
       "id": "veterinarian",
-      "name": "دامپزشک",
+      "name": "پزشک",
       "permissions": ["view_assigned_pets", "edit_pet_records", "create_visits", "prescribe_medication", "manage_vaccinations", "manage_surgery_sessions", "view_lab_results", "manage_clinical_notes"]
     },
     {
@@ -46,8 +46,13 @@
       "permissions": ["manage_sales", "process_payments", "manage_loyalty", "view_inventory", "manage_customer_orders", "issue_receipts"]
     },
     {
+      "id": "guardian",
+      "name": "سرپرست حیوان خانگی",
+      "permissions": ["view_own_pets", "request_services", "view_medical_history", "view_vaccinations", "view_appointments", "receive_notifications"]
+    },
+    {
       "id": "owner",
-      "name": "سرپرست پت",
+      "name": "سرپرست حیوان خانگی (سازگاری)",
       "permissions": ["view_own_pets", "request_services", "view_medical_history", "view_vaccinations", "view_appointments", "receive_notifications"]
     },
     {

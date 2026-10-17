@@ -148,8 +148,8 @@ export const CloudSyncMigrationTab: React.FC<CloudSyncMigrationTabProps> = ({
             <CloudUpload className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-black text-slate-900">همگام‌سازی ابری، پورتال مالکان و پالایش داده</h2>
-            <p className="text-xs text-slate-500">پشتیبان‌گیری شبانه، اپلیکیشن صاحب حیوان و انتقال سوابق قدیمی</p>
+            <h2 className="text-base font-black text-slate-900">همگام‌سازی ابری، پورتال سرپرستان و پالایش داده</h2>
+            <p className="text-xs text-slate-500">پشتیبان‌گیری شبانه، اپلیکیشن سرپرست حیوان و انتقال سوابق قدیمی</p>
           </div>
         </div>
 
@@ -169,7 +169,7 @@ export const CloudSyncMigrationTab: React.FC<CloudSyncMigrationTabProps> = ({
               activeTab === 'portal_preview' ? 'bg-white text-emerald-900 shadow-xs' : 'text-slate-600'
             }`}
           >
-            پیش‌نمایش پورتال مالکان
+            پیش‌نمایش پورتال سرپرستان
           </button>
           <button
             onClick={() => setActiveTab('migration')}
@@ -210,7 +210,7 @@ export const CloudSyncMigrationTab: React.FC<CloudSyncMigrationTabProps> = ({
               </div>
               <h3 className="text-xl font-black text-white">اتصال پایدار سرور محلی کلینیک به کلاود</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                تمام ویزیت‌ها، تراکنش‌ها و واکسن‌های ثبت شده به صورت خودکار هر شب ساعت ۰۰:۰۰ (یا به صورت دستی) به سرور ابری کلینیک منتقل می‌شوند تا مالکان به شناسنامه و سوابق دسترسی داشته باشند.
+                تمام ویزیت‌ها، تراکنش‌ها و واکسن‌های ثبت شده به صورت خودکار هر شب ساعت ۰۰:۰۰ (یا به صورت دستی) به سرور ابری کلینیک منتقل می‌شوند تا سرپرستان به شناسنامه و سوابق دسترسی داشته باشند.
               </p>
             </div>
 
@@ -275,8 +275,8 @@ export const CloudSyncMigrationTab: React.FC<CloudSyncMigrationTabProps> = ({
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-black text-slate-900">نمای پورتال صاحب حیوان (پت‌کارت ابری):</h4>
-                <p className="text-xs text-slate-500">آنچه صاحب پت پس از همگام‌سازی در موبایل خود مشاهده می‌کند</p>
+                <h4 className="text-sm font-black text-slate-900">نمای پورتال سرپرست حیوان (پت‌کارت ابری):</h4>
+                <p className="text-xs text-slate-500">آنچه سرپرست پت پس از همگام‌سازی در موبایل خود مشاهده می‌کند</p>
               </div>
               <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-xl">
                 پورتال ابری آنلاین
@@ -291,7 +291,7 @@ export const CloudSyncMigrationTab: React.FC<CloudSyncMigrationTabProps> = ({
                   </div>
                   <span className="font-bold text-xs">پورتال کلینیک مهرگان</span>
                 </div>
-                <span className="text-[10px] text-slate-400">نسخه ابری مالکان</span>
+                <span className="text-[10px] text-slate-400">نسخه ابری سرپرستان</span>
               </div>
 
               {/* Pet Card */}
@@ -361,7 +361,7 @@ export const CloudSyncMigrationTab: React.FC<CloudSyncMigrationTabProps> = ({
 
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-500">
-              الگوریتم پالایش: یکسان‌سازی پیش‌شماره‌های ۹۸+ به ۰۹، بررسی تشابه نام پت و مالک.
+              الگوریتم پالایش: یکسان‌سازی پیش‌شماره‌های ۹۸+ به ۰۹، بررسی تشابه نام پت و سرپرست.
             </span>
 
             <button
@@ -399,7 +399,7 @@ export const CloudSyncMigrationTab: React.FC<CloudSyncMigrationTabProps> = ({
                     <tr>
                       <th className="p-2.5">نام پت</th>
                       <th className="p-2.5">گونه و نژاد</th>
-                      <th className="p-2.5">مالک</th>
+                      <th className="p-2.5">سرپرست</th>
                       <th className="p-2.5">شماره موبایل استاندارد</th>
                       <th className="p-2.5">میکروچیپ اختصاصی</th>
                     </tr>

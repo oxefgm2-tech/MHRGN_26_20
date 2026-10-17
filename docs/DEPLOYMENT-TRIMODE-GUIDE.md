@@ -215,7 +215,7 @@ curl -s http://127.0.0.1:3000/api/system/deployment-mode
 ### ۶. عیب‌یابی رایج
 
 1. **خطای عدم دسترسی به تصاویر رادیوگرافی:**
-   - مطمئن شوید پوشه `/var/www/vetclinic/data/radiography/incoming` دارای دسترسی `2775` و مالکیت `www-data` است.
+   - مطمئن شوید پوشه `/var/www/vetclinic/data/radiography/incoming` دارای دسترسی `2775` و انتساب به کاربر `www-data` است.
    - مطمئن شوید متغیر `RADIOGRAPHY_DIR` در فایل `.env` به درستی تنظیم شده باشد.
 2. **قفل شدن پورت ۳۰۰۰:**
    - دستور `lsof -i :3000` را اجرا کرده و فرایند قبلی را متوقف فرمایید.

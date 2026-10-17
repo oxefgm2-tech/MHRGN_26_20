@@ -886,7 +886,7 @@ export const initialAppointments: Appointment[] = [
     clientRequestedOnline: false,
     operatorApprovalStatus: 'approved_queued',
     reminder24hSent: true,
-    notes: 'صاحب مطلع شد که حیوان باید ناشتا باشد (۸ ساعت ناشتا). بیعانه ثبت شد.',
+    notes: 'سرپرست مطلع شد که حیوان باید ناشتا باشد (۸ ساعت ناشتا). بیعانه ثبت شد.',
     createdAt: '۱۴۰۳/۰۵/۲۶',
   },
   {
@@ -939,7 +939,7 @@ export const initialAppointments: Appointment[] = [
     clientRequestedOnline: true,
     operatorApprovalStatus: 'pending_approval',
     reminder24hSent: false,
-    notes: 'درخواست آنلاین توسط صاحب پت از طریق پورتال مشترکین. در انتظار تایید اپراتور و ارسال لینک بیعانه.',
+    notes: 'درخواست آنلاین توسط سرپرست پت از طریق پورتال مشترکین. در انتظار تایید اپراتور و ارسال لینک بیعانه.',
     createdAt: '۱۴۰۳/۰۵/۲۹',
   },
   {
@@ -1494,9 +1494,9 @@ export const initialPrintTemplates: PrintTemplate[] = [
       <td colspan="3" style="padding: 8px; border: 1px solid #e2e8f0; font-family: monospace; font-size: 15px; font-weight: bold; letter-spacing: 2px; color: #b45309;">{{microchip}}</td>
     </tr>
     <tr>
-      <td style="padding: 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: bold;">نام و نام خانوادگی مالک:</td>
+      <td style="padding: 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: bold;">نام و نام خانوادگی سرپرست:</td>
       <td style="padding: 8px; border: 1px solid #e2e8f0;">{{owner_name}}</td>
-      <td style="padding: 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: bold;">شماره تماس مالک:</td>
+      <td style="padding: 8px; border: 1px solid #e2e8f0; background: #f8fafc; font-weight: bold;">شماره تماس سرپرست:</td>
       <td style="padding: 8px; border: 1px solid #e2e8f0;">{{owner_phone}}</td>
     </tr>
   </table>
@@ -1545,7 +1545,7 @@ export const initialPrintTemplates: PrintTemplate[] = [
     id: 'tmpl-3',
     code: 'surgery_consent',
     title: 'رضایت‌نامه و برائت‌نامه جراحی و بیهوشی',
-    description: 'فرم قانونی رضایت آگاهانه مالک برای انجام اعمال جراحی و بیهوشی عمومی',
+    description: 'فرم قانونی رضایت آگاهانه سرپرست برای انجام اعمال جراحی و بیهوشی عمومی',
     variables: ['{{owner_name}}', '{{national_id}}', '{{pet_name}}', '{{surgery_name}}', '{{vet_name}}', '{{date}}'],
     contentHtml: `<div style="border: 2px solid #334155; border-radius: 8px; padding: 24px; font-family: 'Vazirmatn', sans-serif; background: #ffffff; color: #1e293b; max-width: 750px; margin: auto; font-size: 13px; line-height: 2;">
   <div style="text-align: center; border-bottom: 2px solid #334155; padding-bottom: 12px; margin-bottom: 16px;">
@@ -1554,7 +1554,7 @@ export const initialPrintTemplates: PrintTemplate[] = [
   </div>
 
   <p>
-    اینجانب <strong>{{owner_name}}</strong> دارای کد ملی <strong>{{national_id}}</strong>، به عنوان مالک حیوان خانگی به نام <strong>{{pet_name}}</strong>، با آگاهی کامل از خطرات و عوارض غیرقابل پیش‌بینی بیهوشی عمومی، واکنش‌های دارویی و روند جراحی <strong>{{surgery_name}}</strong>، رضایت کامل و بی‌قید و شرط خود را جهت انجام اقدام درمانی توسط تیم جراحی به سرپرستی <strong>{{vet_name}}</strong> اعلام می‌دارم.
+    اینجانب <strong>{{owner_name}}</strong> دارای کد ملی <strong>{{national_id}}</strong>، به عنوان سرپرست حیوان خانگی به نام <strong>{{pet_name}}</strong>، با آگاهی کامل از خطرات و عوارض غیرقابل پیش‌بینی بیهوشی عمومی، واکنش‌های دارویی و روند جراحی <strong>{{surgery_name}}</strong>، رضایت کامل و بی‌قید و شرط خود را جهت انجام اقدام درمانی توسط تیم جراحی به سرپرستی <strong>{{vet_name}}</strong> اعلام می‌دارم.
   </p>
 
   <ul style="padding-right: 20px; color: #475569; margin: 12px 0;">
@@ -1564,7 +1564,7 @@ export const initialPrintTemplates: PrintTemplate[] = [
 
   <div style="display: flex; justify-content: space-between; margin-top: 36px; padding-top: 16px; border-top: 1px dashed #94a3b8;">
     <div><strong>تاریخ و ساعت:</strong> {{date}}</div>
-    <div style="text-align: center;"><strong>امضا و اثر انگشت مالک:</strong><br><br>..................................</div>
+    <div style="text-align: center;"><strong>امضا و اثر انگشت سرپرست:</strong><br><br>..................................</div>
   </div>
 </div>`,
   },
@@ -2636,7 +2636,7 @@ export const initialApiEndpointTests: ApiEndpointTestItem[] = [
     name: 'تست ایجاد لینک پرداخت بیعانه جراحی',
     method: 'POST',
     endpoint: '/api/v1/queues/deposit-link',
-    description: 'ایجاد لینک پرداخت اختصاصی شاپرک / بله برای ارسال به صاحب پت',
+    description: 'ایجاد لینک پرداخت اختصاصی شاپرک / بله برای ارسال به سرپرست پت',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer vet_live_secret_key_889' },
     requestBody: JSON.stringify({ appointmentId: 'apt-req-1', petName: 'لوسی', depositAmountToman: 2000000, messenger: 'bale' }, null, 2),
     mockResponse: JSON.stringify({ success: true, paymentUrl: 'https://pay.vetcloud.ir/dep/ovh-9912', expiresAt: '1403/05/30 23:59', qrCode: 'data:image/png;base64,iVBORw...' }, null, 2),
@@ -2763,9 +2763,9 @@ export const legacySqlDatabaseSchemas: Record<string, LegacySqlDatabaseSchema> =
     tables: [
       {
         tableName: 'tbl_Owners',
-        persianLabel: 'اطلاعات مالکان و مشتریان',
+        persianLabel: 'اطلاعات سرپرستان و مشتریان',
         rowCount: 1420,
-        description: 'جدول اصلی صاحبان پت، شماره تماس و اطلاعات هویتی',
+        description: 'جدول اصلی سرپرستان پت، شماره تماس و اطلاعات هویتی',
         targetEntity: 'owners',
         columns: [
           { name: 'OwnerID', dataType: 'int', isNullable: false, isPrimaryKey: true, sampleValue: '101' },
@@ -3680,7 +3680,7 @@ export const initialKnowledgeBaseArticles: KnowledgeBaseArticle[] = [
     summary: 'تفکیک دقیق بین رزرو نوبت در صف تقویمی (نیازمند بیعانه) و ثبت فوری خدمت حاضر در کلینیک.',
     contentMarkdown: `### تفکیک جریان کار رزرو تقویمی و خدمات حضوری
 - دستورات صوتی منشی در صورتی که شامل جراحی یا گرومینگ باشند، دو مسیر مجزا ارائه می‌دهند:
-  1. *رزرو نوبت با گیت بیعانه*: تولید فاکتور پیش‌پرداخت و ارسال لینک پرداخت به صاحب پت.
+  1. *رزرو نوبت با گیت بیعانه*: تولید فاکتور پیش‌پرداخت و ارسال لینک پرداخت به سرپرست پت.
   2. *ثبت فوری خدمت حاضر*: آغاز عملیات در اتاق عمل یا سالن گرومینگ بدون ایجاد صف موقت.`,
     tags: ['اتاق عمل', 'جراحی', 'گرومینگ', 'منشی صوتی', 'بیعانه'],
     authorRole: 'veterinarian',

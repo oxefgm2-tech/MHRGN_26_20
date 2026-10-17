@@ -96,7 +96,7 @@ export const DAM2000_TABLES: LegacyTableMetadata[] = [
   },
   {
     tableName: 'tbl_Owners',
-    persianLabel: 'صاحبان و مراجعین',
+    persianLabel: 'سرپرستان و مراجعین',
     description: 'اطلاعات هویتی و شماره‌های تماس مشتریان کلینیک در دام۲۰۰۰',
     database: 'dam2000',
     targetEntity: 'owners',

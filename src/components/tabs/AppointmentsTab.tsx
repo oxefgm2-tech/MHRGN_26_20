@@ -455,7 +455,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
             <div className="flex items-center gap-2">
               <Info className="w-5 h-5 text-amber-700 shrink-0" />
               <span>
-                درخواست‌های زیر توسط مشترکین و صاحبان پت از پورتال یا ربات بله/تلگرام ثبت شده‌اند. اپراتور پس از بررسی، نوبت را تایید کرده و لینک پرداخت بیعانه خودکار صادر می‌شود.
+                درخواست‌های زیر توسط مشترکین و سرپرستان پت از پورتال یا ربات بله/تلگرام ثبت شده‌اند. اپراتور پس از بررسی، نوبت را تایید کرده و لینک پرداخت بیعانه خودکار صادر می‌شود.
               </span>
             </div>
             <span className="font-bold font-mono text-sm bg-amber-200/70 px-2.5 py-1 rounded-xl">
@@ -503,7 +503,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
                         <span className="font-bold text-[#4A6741]">{req.date} • {req.timeSlot}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-[#5C7457]">شماره تماس مالک:</span>
+                        <span className="text-[#5C7457]">شماره تماس سرپرست:</span>
                         <span className="font-mono text-[#2D3A27]">{req.ownerPhone}</span>
                       </div>
                       {req.notes && (
@@ -562,7 +562,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="جستجو در نام پت، مالک، خدمت یا شماره تماس..."
+                placeholder="جستجو در نام پت، سرپرست، خدمت یا شماره تماس..."
                 className="w-full bg-[#F7F8F3] border border-[#E6E9DF] rounded-2xl pr-10 pl-4 py-2 text-xs text-[#2D3A27] focus:outline-none focus:ring-2 focus:ring-[#4A6741]"
               />
             </div>
@@ -880,7 +880,7 @@ export const AppointmentsTab: React.FC<AppointmentsTabProps> = ({
                 >
                   {pets.map((p) => (
                     <option key={p.id} value={p.id}>
-                      {p.name} ({p.breed} - {p.species}) | مالک: {p.ownerName}
+                      {p.name} ({p.breed} - {p.species}) | سرپرست: {p.ownerName}
                     </option>
                   ))}
                 </select>

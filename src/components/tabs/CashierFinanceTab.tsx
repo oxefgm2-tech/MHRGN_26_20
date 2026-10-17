@@ -215,7 +215,7 @@ ${itemsText}
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="جستجو بر اساس شماره فاکتور، نام بیمار، یا صاحب حیوان..."
+            placeholder="جستجو بر اساس شماره فاکتور، نام بیمار، یا سرپرست حیوان..."
             className="w-full bg-[#F7F8F3] border border-[#E6E9DF] rounded-2xl pr-10 pl-4 py-2.5 text-xs text-[#2D3A27] placeholder-[#5C7457]/70 focus:outline-none focus:ring-2 focus:ring-[#4A6741]"
           />
         </div>
@@ -258,7 +258,7 @@ ${itemsText}
             <thead className="bg-[#F7F8F3] text-[#5C7457] font-bold border-b border-[#E6E9DF]">
               <tr>
                 <th className="p-4">شماره فاکتور</th>
-                <th className="p-4">بیمار و مالک</th>
+                <th className="p-4">بیمار و سرپرست</th>
                 <th className="p-4">اقلام و خدمات</th>
                 <th className="p-4">مبلغ نهایی</th>
                 <th className="p-4">وضعیت تسویه</th>
@@ -393,7 +393,7 @@ ${itemsText}
                   <div className="font-bold text-[#2D3A27] text-sm mt-0.5">{selectedInvoiceForModal.petName}</div>
                 </div>
                 <div className="text-left">
-                  <span className="text-[#5C7457]">مشخصات خریدار / مالک:</span>
+                  <span className="text-[#5C7457]">مشخصات خریدار / سرپرست:</span>
                   <div className="font-bold text-[#2D3A27] text-sm mt-0.5">{selectedInvoiceForModal.ownerName}</div>
                 </div>
               </div>

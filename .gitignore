@@ -34,3 +34,8 @@ dist/
 __pycache__/
 *.py[cod]
 *.pyc
+
+# AI Studio runtime sync ignores
+.aistudio/
+assets/.aistudio/
+bun.lock

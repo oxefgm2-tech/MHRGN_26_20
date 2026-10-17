@@ -8,7 +8,7 @@ function checkFileExistsAndNonEmpty(filePath: string): boolean {
   return stat.size > 0;
 }
 
-function requestHttp(options: http.RequestOptions): Promise<{ statusCode: number; data: any }> {
+function requestHttp(options: http.RequestOptions, postData?: string): Promise<{ statusCode: number; data: any }> {
   return new Promise((resolve, reject) => {
     const req = http.request(options, (res) => {
       let raw = '';
@@ -22,6 +22,9 @@ function requestHttp(options: http.RequestOptions): Promise<{ statusCode: number
       });
     });
     req.on('error', reject);
+    if (postData) {
+      req.write(postData);
+    }
     req.end();
   });
 }
@@ -83,11 +86,30 @@ async function run() {
 
   // Check 4: Live server endpoint test
   console.log('  Testing live server endpoint GET /api/telephony/modems...');
+  const loginBody = JSON.stringify({
+    username: 'dr.bayati',
+    password: process.env.AUTH_BOOTSTRAP_TOKEN || 'mpc-bootstrap-2026-secure-token-x7k9m2',
+  });
+  const loginRes = await requestHttp({
+    hostname: '127.0.0.1',
+    port: 3000,
+    path: '/api/auth/login',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(loginBody),
+    },
+  }, loginBody);
+
+  const token = loginRes.data?.token || '';
   const res = await requestHttp({
     hostname: '127.0.0.1',
     port: 3000,
     path: '/api/telephony/modems',
     method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
 
   if (res.statusCode !== 200 || !res.data?.success) {

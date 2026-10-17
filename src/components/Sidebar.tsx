@@ -234,7 +234,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
               <div>
                 <div className="font-extrabold text-xs text-white">منوی اصلی درمانگاه</div>
-                <div className="text-[10px] text-[#D4E0CD]">کلینیک دامپزشکی مهرگان</div>
+                <div className="text-[10px] text-[#D4E0CD]">کلینیک اختصاصی حیوانات خانگی مهرگان</div>
               </div>
             </div>
             {onCloseMobile && (
@@ -264,7 +264,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {userRole === 'cashier' && 'صندوقدار (امور مالی)'}
               {userRole === 'petshop_purchasing' && 'مسئول خرید پت‌شاپ (انبار و اسکن)'}
               {userRole === 'petshop_sales' && 'مسئول فروش پت‌شاپ (صندوق و مشاوره)'}
-              {userRole === 'owner' && 'صاحب پت (پورتال اختصاصی)'}
+              {(userRole === 'guardian' || userRole === 'owner') && 'سرپرست حیوان خانگی (پورتال اختصاصی)'}
             </span>
           </div>
         </div>

@@ -547,7 +547,7 @@ export const SurgerySuiteTab: React.FC<SurgerySuiteTabProps> = ({
                 </div>
                 <div className="flex items-center gap-2 text-emerald-800">
                   <Check className="w-4 h-4 text-emerald-600" />
-                  <span>رضایت‌نامه کتبی صاحب پت امضا شده</span>
+                  <span>رضایت‌نامه کتبی سرپرست پت امضا شده</span>
                 </div>
                 <div className="flex items-center gap-2 text-emerald-800">
                   <Check className="w-4 h-4 text-emerald-600" />
@@ -609,7 +609,7 @@ export const SurgerySuiteTab: React.FC<SurgerySuiteTabProps> = ({
                     </span>
                   </div>
                   <p className="text-xs text-[#5C7457]">
-                    بیمار: <span className="font-bold text-[#2D3A27]">{sess.petName}</span> ({sess.petSpecies} - {sess.petBreed}) | صاحب پت: {sess.ownerName}
+                    بیمار: <span className="font-bold text-[#2D3A27]">{sess.petName}</span> ({sess.petSpecies} - {sess.petBreed}) | سرپرست پت: {sess.ownerName}
                   </p>
                   <p className="text-[11px] text-[#738A6E]">جراح: {sess.surgeonName} | بیهوشی: {sess.anesthetistName}</p>
                 </div>

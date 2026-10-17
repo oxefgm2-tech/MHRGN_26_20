@@ -265,7 +265,7 @@ export const RoleBasedDashboard: React.FC<DashboardTabProps> = ({
                     </div>
                     <p className="text-xs text-[#5C7457] mt-0.5 truncate">{pet.breed} • {pet.ageText}</p>
                     <div className="text-[11px] text-[#5C7457] mt-1 flex items-center justify-between">
-                      <span>مالک: {pet.ownerName}</span>
+                      <span>سرپرست: {pet.ownerName}</span>
                       <span className="font-mono text-[#4A6741] font-bold">{pet.checkInTime || 'امروز'}</span>
                     </div>
                     <div className="mt-3 flex items-center gap-2 pt-2 border-t border-[#E6E9DF]">
@@ -322,7 +322,7 @@ export const RoleBasedDashboard: React.FC<DashboardTabProps> = ({
                     </span>
                   </div>
                   <p className="text-[11px] text-[#5C7457]">
-                    مالک: {vis.ownerName} • تاریخ: {vis.date}
+                    سرپرست: {vis.ownerName} • تاریخ: {vis.date}
                   </p>
                   <button
                     onClick={() => onNavigateToTab('medical_records')}
@@ -382,7 +382,7 @@ export const RoleBasedDashboard: React.FC<DashboardTabProps> = ({
                 مدیریت ورود، نوبت‌ها و مراجعین لابی
               </h2>
               <p className="text-xs sm:text-sm text-[#D4E0CD] leading-relaxed">
-                ثبت ورود فوری بیماران، تخصیص به اتاق پزشک یا گرومینگ و ارسال اعلان به مالکین با دستیار صوتی.
+                ثبت ورود فوری بیماران، تخصیص به اتاق پزشک یا گرومینگ و ارسال اعلان به سرپرستان با دستیار صوتی.
               </p>
             </div>
 
@@ -524,7 +524,7 @@ export const RoleBasedDashboard: React.FC<DashboardTabProps> = ({
                         </span>
                       </div>
                       <div className="text-[11px] text-[#5C7457] mt-0.5">
-                        مالک: {pet.ownerName} ({pet.ownerPhone}) • ورود: {pet.checkInTime || 'امروز'}
+                        سرپرست: {pet.ownerName} ({pet.ownerPhone}) • ورود: {pet.checkInTime || 'امروز'}
                       </div>
                     </div>
                   </div>
@@ -576,7 +576,7 @@ export const RoleBasedDashboard: React.FC<DashboardTabProps> = ({
                     <span className="font-mono text-[#4A6741]">{apt.timeSlot}</span>
                   </div>
                   <div className="text-[11px] text-[#5C7457] flex items-center justify-between">
-                    <span>مالک: {apt.ownerName}</span>
+                    <span>سرپرست: {apt.ownerName}</span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-white text-[#2D3A27]">
                       {apt.vetName}
                     </span>
@@ -597,24 +597,24 @@ export const RoleBasedDashboard: React.FC<DashboardTabProps> = ({
   }
 
   // =========================================================================
-  // VIEW 3: PET OWNER DASHBOARD (صاحب پت - آرش علیزاده)
-  // Dedicated Pet Parent portal: Only showing the owner's pets, their vaccines,
+  // VIEW 3: PET GUARDIAN DASHBOARD (سرپرست پت - آرش علیزاده)
+  // Dedicated Pet Guardian portal: Only showing the guardian's pets, their vaccines,
   // appointments, and medical passports. All other patients and internal clinic
   // metrics are 100% hidden.
   // =========================================================================
-  if (userRole === 'owner') {
-    // Filter pets belonging to this demo owner (or display first 2 as demo pet family)
+  if (userRole === 'guardian' || userRole === 'owner') {
+    // Filter pets belonging to this demo guardian (or display first 2 as demo pet family)
     const ownerPets = safePets.slice(0, 2);
 
     return (
       <div id="tab-dashboard-owner" className="space-y-6 animate-fadeIn pb-12">
-        {/* Pet Parent Welcome Banner */}
+        {/* Pet Guardian Welcome Banner */}
         <div className="bg-[#3A5534] text-white rounded-[32px] p-6 sm:p-8 shadow-sm border border-[#2B4026] relative overflow-hidden">
           <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="space-y-2 max-w-xl">
               <div className="inline-flex items-center gap-2 bg-white/15 text-[#D4E0CD] border border-white/20 px-3 py-1 rounded-full text-xs font-bold">
                 <Heart className="w-3.5 h-3.5 text-rose-300 fill-rose-300" />
-                <span>پورتال اختصاصی والدین حیوانات خانگی</span>
+                <span>پورتال اختصاصی سرپرستان حیوانات خانگی</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
                 خوش آمدید به باشگاه سلامت پت شما
@@ -1089,7 +1089,7 @@ export const RoleBasedDashboard: React.FC<DashboardTabProps> = ({
                   <p className="text-xs text-[#5C7457] mt-0.5 truncate">{pet.breed} • {pet.ageText}</p>
                   
                   <div className="text-[11px] text-[#5C7457] mt-1 flex items-center justify-between">
-                    <span>مالک: {pet.ownerName}</span>
+                    <span>سرپرست: {pet.ownerName}</span>
                     <span className="font-mono text-[#4A6741] font-bold">{pet.checkInTime}</span>
                   </div>
 
@@ -1156,7 +1156,7 @@ export const RoleBasedDashboard: React.FC<DashboardTabProps> = ({
                 </div>
 
                 <p className="text-[11px] text-[#5C7457] leading-relaxed">
-                  پزشک ناظر: {vis.vetName} • مالک: {vis.ownerName}
+                  پزشک ناظر: {vis.vetName} • سرپرست: {vis.ownerName}
                 </p>
 
                 <div className="flex items-center justify-between pt-2 border-t border-rose-200/60 text-xs">
