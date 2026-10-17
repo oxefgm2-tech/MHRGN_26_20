@@ -1,0 +1,39 @@
+--- a/server.ts
++++ b/server.ts
+@@ -4820,50 +4820,50 @@
++// ==========================================
++// N4: DICOM STORE SCP & UNIFIED INGEST QUEUE
++// ==========================================
++app.post('/api/radiography/dicom-webhook', (req: Request, res: Response) => {
++  const payload = req.body;
++  if (!payload || !payload.ID) {
++    return uniformResponse(res, 400, { success: false, error: 'Orthanc instance payload missing ID' });
++  }
++  const adapted = mapOrthancInstanceToClinicRadiograph(payload);
++  const enqueueResult = unifiedIngestQueue.enqueue(adapted);
++  
++  // Persist to store if new record
++  if (!enqueueResult.isDuplicate) {
++    if (!Array.isArray(store.radiographs)) store.radiographs = [];
++    store.radiographs.unshift(enqueueResult.item);
++    saveStore();
++  }
++
++  return uniformResponse(res, 201, {
++    success: true,
++    item: enqueueResult.item,
++    isDuplicate: enqueueResult.isDuplicate,
++    message: enqueueResult.isDuplicate
++      ? 'تصویر تکراری تشخیص داده شد و متادیتای DICOM با رکورد موجود ادغام گردید.'
++      : 'تصویر جدید رادیوگرافی DICOM در صف پرونده بیمار ثبت شد.',
++  });
++});
++
++app.get('/api/radiography/unified-queue', (_req: Request, res: Response) => {
++  const queue = unifiedIngestQueue.getQueue();
++  return uniformResponse(res, 200, {
++    success: true,
++    count: queue.length,
++    queue,
++  });
++});

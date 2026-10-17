@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "lucide-react": "^1.16.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/node": "^22.14.0"
+  },
+  "requires": [
+    "P1.3-internal-messenger"
+  ],
+  "notes": "Both StaffTasksDelegationTab and EmergencySummonModal rely on realtimeChatService and WebSocket (/ws) from P1.3 for live dispatch, updates, and audible alerts."
+}

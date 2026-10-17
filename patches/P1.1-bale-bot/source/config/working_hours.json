@@ -1,0 +1,33 @@
+{
+  "timezone": "Asia/Tehran",
+  "enabled": true,
+  "sections": {
+    "medical": {
+      "enabled": true,
+      "days": {
+        "saturday": { "enabled": true, "windows": [{ "open": "09:00", "close": "02:00" }] },
+        "sunday": { "enabled": true, "windows": [{ "open": "09:00", "close": "02:00" }] },
+        "monday": { "enabled": true, "windows": [{ "open": "09:00", "close": "02:00" }] },
+        "tuesday": { "enabled": true, "windows": [{ "open": "09:00", "close": "02:00" }] },
+        "wednesday": { "enabled": true, "windows": [{ "open": "09:00", "close": "02:00" }] },
+        "thursday": { "enabled": true, "windows": [{ "open": "09:00", "close": "21:30" }] },
+        "friday": { "enabled": true, "windows": [{ "open": "10:00", "close": "14:00" }, { "open": "17:00", "close": "02:00" }] }
+      }
+    },
+    "petshop": {
+      "enabled": true,
+      "days": {
+        "saturday": { "enabled": true, "windows": [{ "open": "09:00", "close": "21:30" }] },
+        "sunday": { "enabled": true, "windows": [{ "open": "09:00", "close": "21:30" }] },
+        "monday": { "enabled": true, "windows": [{ "open": "09:00", "close": "21:30" }] },
+        "tuesday": { "enabled": true, "windows": [{ "open": "09:00", "close": "21:30" }] },
+        "wednesday": { "enabled": true, "windows": [{ "open": "09:00", "close": "21:30" }] },
+        "thursday": { "enabled": true, "windows": [{ "open": "09:00", "close": "21:30" }] },
+        "friday": { "enabled": true, "windows": [{ "open": "17:00", "close": "21:30" }] }
+      }
+    }
+  },
+  "emergency_note": "بخش مراقبت‌های ویژه (ICU) و اورژانس کلینیک مهرگان به‌صورت ۲۴ ساعته شبانه‌روزی آماده پذیرش است.",
+  "closed_message": "❌ کلینیک در حال حاضر برای مراجعین عادی بسته است.\nپذیرش اورژانس ۲۴ ساعته فعال است:\n📞 ۰۹۳۰۲۱۸۲۰۰۴۴",
+  "open_message": "✅ کلینیک دامپزشکی مهرگان هم‌اکنون باز و آماده خدمت‌رسانی است."
+}

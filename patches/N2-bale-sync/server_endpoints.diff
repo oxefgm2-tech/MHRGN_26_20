@@ -1,0 +1,10 @@
+# diff --git a/server.ts b/server.ts
+# Note: این سرویس فقط کلاینت‌ساید / سرویس‌به‌سرویس (Client-side / Service-to-Service Transformer) است.
+# هیچ روت سروری مستقیمی در server.ts مورد نیاز نیست زیرا داده‌های پیکربندی توسط کلاینت یا اسکریپت همگام‌ساز تولید و به فایل‌های JSON ربات (در P1.1) تزریق می‌شوند.
+# در صورت نیاز به دریافت نوبت از وب‌هوک بله در فاز آتی، روت ذیل می‌تواند به server.ts الصاق گردد:
+#
+# + app.post('/api/bale/webhook/appointments', (req: Request, res: Response) => {
+# +   const payload: BaleAppointmentPayload = req.body;
+# +   // نگاشت نوبت ربات بله به مخزن نوبت‌های کلینیک مهرگان
+# +   return uniformResponse(res, 201, { success: true, message: 'نوبت بله ثبت شد' });
+# + });

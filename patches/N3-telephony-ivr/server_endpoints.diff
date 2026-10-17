@@ -1,0 +1,736 @@
+--- a/server.ts
++++ b/server.ts
+@@ -3858,733 +3858,733 @@
++app.get('/api/telephony/modems', (_req: Request, res: Response) => {
++  return res.json({
++    success: true,
++    modems: defaultTelephonyModems,
++    activePort: store.telephonyIvrConfig?.selectedModemPort || 'COM3',
++  });
++});
++
++app.get('/api/telephony/config', (_req: Request, res: Response) => {
++  return res.json({
++    success: true,
++    config: {
++      ...defaultIvrConfig,
++      ...(store.telephonyIvrConfig || {}),
++    },
++  });
++});
++
++app.post('/api/telephony/config', (req: Request, res: Response) => {
++  const updates = req.body || {};
++  store.telephonyIvrConfig = {
++    ...(store.telephonyIvrConfig || defaultIvrConfig),
++    ...updates,
++  };
++  saveStore();
++  return res.json({
++    success: true,
++    message: 'تنظیمات منشی تلفنی گویا و مودم ذخیره شد.',
++    config: store.telephonyIvrConfig,
++  });
++});
++
++app.get('/api/telephony/calls', (req: Request, res: Response) => {
++  const queue = req.query.queue as string;
++  let calls = store.telephonyCalls || [];
++  if (queue && queue !== 'all') {
++    calls = calls.filter((c: any) => c.queueType === queue);
++  }
++  return res.json({
++    success: true,
++    calls,
++    counts: {
++      total: (store.telephonyCalls || []).length,
++      surgery: (store.telephonyCalls || []).filter((c: any) => c.queueType === 'surgery_appointment').length,
++      petshop: (store.telephonyCalls || []).filter((c: any) => c.queueType === 'petshop_order').length,
++      address: (store.telephonyCalls || []).filter((c: any) => c.queueType === 'address_inquiry').length,
++      pending: (store.telephonyCalls || []).filter((c: any) => c.status === 'pending_review').length,
++    },
++  });
++});
++
++app.post('/api/telephony/calls', async (req: Request, res: Response) => {
++  const call = req.body;
++  if (!call || !call.callerId) {
++    return uniformResponse(res, 400, { success: false, error: 'شماره تماس‌گیرنده (Caller ID) الزامی است.' });
++  }
++
++  const newCall = {
++    id: `call-${Date.now()}`,
++    callerId: call.callerId,
++    callerName: call.callerName || `تماس‌گیرنده (${call.callerId})`,
++    dateTime: new Date().toLocaleDateString('fa-IR') + ' - ' + new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }),
++    durationSeconds: Number(call.durationSeconds) || 30,
++    queueType: call.queueType || 'general',
++    status: 'pending_review',
++    keySelected: call.keySelected || 'none',
++    hasAudio: Boolean(call.hasAudio),
++    audioDurationSec: Number(call.audioDurationSec) || (call.hasAudio ? 25 : 0),
++    audioRecordingUrl: call.audioRecordingUrl || '',
++    extractedTranscript: call.extractedTranscript || '',
++    staffNotes: call.staffNotes || '',
++    smsFollowupSent: false,
++    smsDeliveryStatus: 'pending' as 'pending' | 'delivered' | 'failed',
++    baleLinkIncluded: false,
++  };
++
++  // If address key was selected and auto SMS enabled, trigger IPPanel SMS with Bale Bot and Neshan link
++  const cfg = store.telephonyIvrConfig || defaultIvrConfig;
++  if (cfg.autoSendSmsForAddress && call.callerId && /^0?9\d{9}$/.test(call.callerId.replace(/\s+/g, ''))) {
++    try {
++      const smsText = `کلینیک دامپزشکی مهرگان اصفهان (خ توحید میانی، ک ۲۲ مشکلانی)\nمسیریابی نشان: https://neshan.org/maps/@32.6331396,51.6532624,17z\nبازوی نوبت‌دهی بله: https://ble.ir/mehreganpetclinic_bot\nاورژانس: 093021820044`;
++      await sendDirectSms({
++        recipients: [call.callerId],
++        message: smsText,
++      });
++      newCall.smsFollowupSent = true;
++      newCall.smsDeliveryStatus = 'delivered';
++      newCall.baleLinkIncluded = true;
++    } catch (e) {
++      console.error('Telephony follow-up SMS failed:', e);
++      newCall.smsFollowupSent = true;
++      newCall.smsDeliveryStatus = 'failed';
++    }
++  }
++
++  if (!store.telephonyCalls) store.telephonyCalls = [];
++  store.telephonyCalls.unshift(newCall);
++  saveStore();
++
++  return uniformResponse(res, 201, {
++    success: true,
++    message: 'تماس صوتی منشی تلفنی با موفقیت ثبت گردید.',
++    call: newCall,
++  });
++});
++
++// Directory for persistent storage of recorded telephony audio files
++const TELEPHONY_RECORDINGS_DIR = path.join(process.cwd(), 'data', 'telephony_recordings');
++if (!fs.existsSync(TELEPHONY_RECORDINGS_DIR)) {
++  try {
++    fs.mkdirSync(TELEPHONY_RECORDINGS_DIR, { recursive: true });
++  } catch (e) {
++    console.error('Could not create telephony recordings dir:', e);
++  }
++}
++
++// Upload endpoint for recordings captured by local 56k modem daemon on ncase3/Windows
++app.post('/api/telephony/upload-recording', (req: Request, res: Response) => {
++  try {
++    const { filename, audioBase64, callerId, callId } = req.body || {};
++    if (!audioBase64) {
++      return uniformResponse(res, 400, { success: false, error: 'محتوای فایل صوتی (audioBase64) ارسال نشده است.' });
++    }
++
++    const cleanFilename = (filename || `rec_${callerId || 'call'}_${Date.now()}.wav`)
++      .replace(/[^a-zA-Z0-9_\-\.]/g, '_');
++    const safeFilename = cleanFilename.endsWith('.wav') ? cleanFilename : `${cleanFilename}.wav`;
++    const targetPath = path.join(TELEPHONY_RECORDINGS_DIR, safeFilename);
++
++    const buffer = Buffer.from(audioBase64, 'base64');
++    fs.writeFileSync(targetPath, buffer);
++
++    const audioUrl = `/api/telephony/recordings/${safeFilename}`;
++
++    // If callId provided, link it to the existing call
++    if (callId && store.telephonyCalls) {
++      const idx = store.telephonyCalls.findIndex((c: any) => c.id === callId);
++      if (idx >= 0) {
++        store.telephonyCalls[idx].audioRecordingUrl = audioUrl;
++        store.telephonyCalls[idx].hasAudio = true;
++        saveStore();
++      }
++    }
++
++    return res.json({
++      success: true,
++      message: 'فایل صوتی مکالمه با موفقیت در سرور ثبت و ذخیره شد.',
++      audioUrl,
++      filename: safeFilename,
++      sizeBytes: buffer.length,
++    });
++  } catch (err: any) {
++    console.error('Error saving audio recording:', err);
++    return uniformResponse(res, 500, { success: false, error: 'خطا در ذخیره فایل صوتی مکالمه: ' + err.message });
++  }
++});
++
++// Stream or download recorded audio file
++app.get('/api/telephony/recordings/:filename', (req: Request, res: Response) => {
++  try {
++    const filename = path.basename(req.params.filename);
++    const filePath = path.join(TELEPHONY_RECORDINGS_DIR, filename);
++
++    if (!fs.existsSync(filePath)) {
++      return uniformResponse(res, 404, { success: false, error: 'فایل صوتی مکالمه یافت نشد.' });
++    }
++
++    const stat = fs.statSync(filePath);
++    const fileSize = stat.size;
++    const range = req.headers.range;
++
++    if (range) {
++      const parts = range.replace(/bytes=/, '').split('-');
++      const start = parseInt(parts[0], 10);
++      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
++      const chunksize = end - start + 1;
++      const file = fs.createReadStream(filePath, { start, end });
++      const head = {
++        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
++        'Accept-Ranges': 'bytes',
++        'Content-Length': chunksize,
++        'Content-Type': 'audio/wav',
++      };
++      res.writeHead(206, head);
++      file.pipe(res);
++    } else {
++      const head = {
++        'Content-Length': fileSize,
++        'Content-Type': 'audio/wav',
++        'Accept-Ranges': 'bytes',
++      };
++      res.writeHead(200, head);
++      fs.createReadStream(filePath).pipe(res);
++    }
++  } catch (err: any) {
++    return uniformResponse(res, 500, { success: false, error: 'خطا در بارگذاری صوت: ' + err.message });
++  }
++});
++
++// ==============================================================================
++// Radiography Isolated Pipe & Imaging Endpoints (Windows 7 -> ncase3 -> Cloud VPS)
++// ==============================================================================
++const RADIOGRAPHY_INCOMING_DIR = path.join(process.cwd(), 'data', 'radiography', 'incoming');
++const RADIOGRAPHY_CASES_DIR = path.join(process.cwd(), 'data', 'radiography', 'cases');
++if (!fs.existsSync(RADIOGRAPHY_INCOMING_DIR)) {
++  try { fs.mkdirSync(RADIOGRAPHY_INCOMING_DIR, { recursive: true }); } catch (_) {}
++}
++if (!fs.existsSync(RADIOGRAPHY_CASES_DIR)) {
++  try { fs.mkdirSync(RADIOGRAPHY_CASES_DIR, { recursive: true }); } catch (_) {}
++}
++
++// Get incoming graph files transferred from Windows 7
++app.get('/api/radiography/incoming', (_req: Request, res: Response) => {
++  try {
++    const files: any[] = [];
++    const checkDirs = [
++      RADIOGRAPHY_INCOMING_DIR,
++      '/srv/radiography/incoming',
++    ];
++
++    for (const dir of checkDirs) {
++      if (fs.existsSync(dir)) {
++        try {
++          const dirEntries = fs.readdirSync(dir);
++          for (const fname of dirEntries) {
++            const fpath = path.join(dir, fname);
++            const stat = fs.statSync(fpath);
++            if (stat.isFile()) {
++              const isSaved = (store.radiographyCases || []).some((c: any) => c.fileName === fname);
++              files.push({
++                id: `rad-${fname}`,
++                name: fname,
++                size: (stat.size / (1024 * 1024)).toFixed(2) + ' MB',
++                sizeBytes: stat.size,
++                date: new Date(stat.mtime).toLocaleDateString('fa-IR') + ' ' + new Date(stat.mtime).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }),
++                saved: isSaved,
++                path: fpath,
++              });
++            }
++          }
++        } catch (_) {}
++      }
++    }
++
++    // Default sample scans if directory is newly created
++    if (files.length === 0) {
++      const demoCases = [
++        { id: 'rad-lucy-01', name: 'XR_20261008_LUCY_THORAX_LAT.png', size: '2.40 MB', sizeBytes: 2516582, date: 'امروز ۱۰:۲۲', saved: true },
++        { id: 'rad-max-02', name: 'XR_20261008_MAX_PELVIS_VD.png', size: '3.10 MB', sizeBytes: 3250585, date: 'امروز ۱۱:۴۵', saved: false },
++        { id: 'rad-teddy-03', name: 'XR_20261008_TEDDY_FORELIMB.jpg', size: '1.80 MB', sizeBytes: 1887436, date: 'امروز ۱۲:۰۵', saved: false },
++      ];
++      return res.json({ success: true, files: demoCases, source: 'seed' });
++    }
++
++    return res.json({ success: true, files, count: files.length, source: 'filesystem' });
++  } catch (err: any) {
++    return uniformResponse(res, 500, { success: false, error: 'خطا در خواندن فایل‌های ورودی رادیوگرافی: ' + err.message });
++  }
++});
++
++// List saved radiography cases
++app.get('/api/radiography/cases', (_req: Request, res: Response) => {
++  return res.json({
++    success: true,
++    cases: store.radiographyCases || [],
++    config: store.radiographyConfig,
++  });
++});
++
++// Register or save a medical radiography case
++app.post('/api/radiography/cases', (req: Request, res: Response) => {
++  try {
++    const {
++      petName,
++      ownerName,
++      ownerPhone,
++      species,
++      breedAge,
++      symptoms,
++      anatomy,
++      projection,
++      findings,
++      impression,
++      doctor,
++      fileName,
++    } = req.body || {};
++
++    if (!petName || !petName.trim()) {
++      return uniformResponse(res, 400, { success: false, error: 'نام بیمار (پت) الزامی است.' });
++    }
++    if (!ownerPhone || !ownerPhone.trim()) {
++      return uniformResponse(res, 400, { success: false, error: 'شماره تماس سرپرست الزامی است.' });
++    }
++
++    const caseId = `RAD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
++    const newCase = {
++      id: caseId,
++      petName: petName.trim(),
++      ownerName: (ownerName || '').trim() || `سرپرست ${petName}`,
++      ownerPhone: ownerPhone.trim(),
++      species: species || 'سگ',
++      breedAge: (breedAge || '').trim(),
++      symptoms: (symptoms || '').trim(),
++      anatomy: anatomy || 'قفسه سینه (Thorax)',
++      projection: projection || 'Lateral (لاتِرال)',
++      findings: (findings || '').trim(),
++      impression: (impression || '').trim(),
++      doctor: (doctor || 'دکتر مهرداد رضایی - کلینیک مهرگان').trim(),
++      fileName: fileName || '',
++      createdAt: new Date().toISOString(),
++      dateShamsi: new Date().toLocaleDateString('fa-IR'),
++      status: 'completed',
++      shareUrl: `https://mehreganpetclinic.ir/viewer?case=${caseId}&pet=${encodeURIComponent(petName.trim())}`,
++    };
++
++    if (!store.radiographyCases) store.radiographyCases = [];
++    store.radiographyCases.unshift(newCase);
++    saveStore();
++
++    // Also persist sidecar JSON file for backup
++    try {
++      const sidecarPath = path.join(RADIOGRAPHY_CASES_DIR, `${caseId}.json`);
++      fs.writeFileSync(sidecarPath, JSON.stringify(newCase, null, 2), 'utf-8');
++    } catch (_) {}
++
++    return res.json({
++      success: true,
++      message: 'پرونده رادیولوژی با موفقیت در سامانه ذخیره گردید.',
++      caseId,
++      caseData: newCase,
++    });
++  } catch (err: any) {
++    return uniformResponse(res, 500, { success: false, error: 'خطا در ثبت پرونده رادیولوژی: ' + err.message });
++  }
++});
++
++// Generate Bale and SMS share links for a case
++app.get('/api/radiography/share-link/:id', (req: Request, res: Response) => {
++  const caseId = req.params.id;
++  const radCase = (store.radiographyCases || []).find((c: any) => c.id === caseId);
++
++  if (!radCase) {
++    return uniformResponse(res, 404, { success: false, error: 'پرونده رادیوگرافی یافت نشد.' });
++  }
++
++  const shareUrl = radCase.shareUrl || `https://mehreganpetclinic.ir/viewer?case=${caseId}`;
++  const smsBody = `سرپرست گرامی ${radCase.ownerName || ''}، نتایج گراف رادیولوژی ${radCase.petName} در کلینیک دامپزشکی مهرگان آماده مشاهده است:\n${shareUrl}`;
++  const baleMessage = `سرپرست گرامی ${radCase.ownerName || ''}،\nگزارش تخصصی و تصویر رادیوگرافی ${radCase.petName} در سامانه کلینیک دامپزشکی مهرگان ثبت گردید.\nمشاهده آنلاین:\n${shareUrl}\n\nتشخیص: ${radCase.impression || 'در دست بررسی'}\nپزشک: ${radCase.doctor || 'کلینیک مهرگان'}`;
++
++  return res.json({
++    success: true,
++    caseId,
++    shareUrl,
++    smsBody,
++    baleMessage,
++    baleDeepLink: `https://ble.ir/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(baleMessage)}`,
++    smsUri: `sms:${radCase.ownerPhone}?body=${encodeURIComponent(smsBody)}`,
++  });
++});
++
++// Serve the static viewer file when accessed
++app.get('/viewer', (_req: Request, res: Response) => {
++  const viewerPath = path.join(process.cwd(), 'scripts', 'radiography_agent', 'ncase3_viewer', 'radiography-viewer.html');
++  if (fs.existsSync(viewerPath)) {
++    return res.sendFile(viewerPath);
++  }
++  return res.redirect('/');
++});
++
++app.patch('/api/telephony/calls/:id', (req: Request, res: Response) => {
++  const callId = req.params.id;
++  const updates = req.body || {};
++  if (!store.telephonyCalls) store.telephonyCalls = [];
++  const idx = store.telephonyCalls.findIndex((c: any) => c.id === callId);
++  if (idx < 0) {
++    return uniformResponse(res, 404, { success: false, error: 'تماس مورد نظر یافت نشد.' });
++  }
++
++  store.telephonyCalls[idx] = {
++    ...store.telephonyCalls[idx],
++    ...updates,
++  };
++  saveStore();
++
++  return res.json({
++    success: true,
++    message: 'وضعیت تماس صوتی بروزرسانی شد.',
++    call: store.telephonyCalls[idx],
++  });
++});
++
++app.post('/api/telephony/calls/:id/convert-to-appointment', (req: Request, res: Response) => {
++  const callId = req.params.id;
++  if (!store.telephonyCalls) store.telephonyCalls = [];
++  const call = store.telephonyCalls.find((c: any) => c.id === callId);
++  if (!call) {
++    return uniformResponse(res, 404, { success: false, error: 'تماس یافت نشد.' });
++  }
++
++  const aptId = `apt-telephony-${Date.now()}`;
++  const queueCode = `TEL-${Math.floor(100 + Math.random() * 900)}`;
++
++  const newAppointment = {
++    id: aptId,
++    petId: 'pet-telephony-temp',
++    petName: req.body.petName || 'پت تماس صوتی منشی گویا',
++    ownerId: 'owner-telephony-temp',
++    ownerName: call.callerName || `مخاطب تلفنی ${call.callerId}`,
++    ownerPhone: call.callerId,
++    appointmentDate: req.body.appointmentDate || new Date().toLocaleDateString('fa-IR'),
++    appointmentTime: req.body.appointmentTime || '۱۸:۰۰ الی ۱۹:۰۰',
++    serviceType: call.queueType === 'surgery_appointment' ? 'soft_tissue_surgery' : 'general_exam',
++    notes: `[تبدیل شده از پیام صوتی منشی تلفنی گویا]\nمتن صوت: ${call.extractedTranscript || ''}\nیادداشت منشی: ${call.staffNotes || ''}`,
++    status: 'scheduled' as const,
++    operatorApprovalStatus: 'confirmed' as const,
++    queueCode,
++    queueTime: new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }),
++    createdAt: new Date().toISOString(),
++  };
++
++  if (!store.appointments) store.appointments = [];
++  store.appointments.unshift(newAppointment);
++
++  // Update call status
++  call.status = 'converted_to_appointment';
++  call.convertedEntityId = aptId;
++  saveStore();
++
++  return res.json({
++    success: true,
++    message: `پیام صوتی با موفقیت به نوبت کلینیک با کد رهگیری ${queueCode} تبدیل شد.`,
++    appointment: newAppointment,
++  });
++});
++
++app.post('/api/telephony/calls/:id/convert-to-petshop-order', (req: Request, res: Response) => {
++  const callId = req.params.id;
++  if (!store.telephonyCalls) store.telephonyCalls = [];
++  const call = store.telephonyCalls.find((c: any) => c.id === callId);
++  if (!call) {
++    return uniformResponse(res, 404, { success: false, error: 'تماس یافت نشد.' });
++  }
++
++  const invoiceId = `inv-petshop-${Date.now()}`;
++  const invoiceNumber = `PS-IVR-${Math.floor(1000 + Math.random() * 9000)}`;
++  const items = Array.isArray(req.body.items) && req.body.items.length > 0 ? req.body.items : [
++    { name: 'اقلام سفارش داده شده در پیام صوتی', quantity: 1, unitPrice: Number(req.body.estimatedTotal) || 0 }
++  ];
++
++  const totalAmount = items.reduce(
++    (sum: number, it: any) => sum + (Number(it.unitPrice || it.price || 0) * Number(it.quantity || it.count || 1)),
++    0
++  );
++
++  const customerName = req.body.recipientName || call.callerName || `مشتری تلفنی ${call.callerId}`;
++  const customerPhone = req.body.recipientPhone || call.callerId;
++  const shippingAddress = req.body.shippingAddress || 'تحویل حضوری یا هماهنگی پیک اسنپ';
++  const deliveryMethod = req.body.deliveryMethod || 'courier_snapp';
++
++  const newInvoice = {
++    id: invoiceId,
++    invoiceNumber,
++    petId: 'pet-telephony-temp',
++    petName: req.body.petName || 'پت مشتری سفارش تلفنی',
++    ownerId: 'owner-telephony-temp',
++    ownerName: customerName,
++    ownerPhone: customerPhone,
++    date: new Date().toLocaleDateString('fa-IR'),
++    items: items.map((it: any, idx: number) => ({
++      id: `item-${idx + 1}`,
++      description: it.name || 'قلم پت‌شاپ',
++      category: 'medication',
++      quantity: Number(it.quantity || it.count || 1),
++      unitPrice: Number(it.unitPrice || it.price || 0),
++      totalPrice: Number(it.unitPrice || it.price || 0) * Number(it.quantity || it.count || 1),
++    })),
++    totalAmount,
++    paidAmount: 0,
++    status: 'unpaid',
++    paymentMethod: 'cash',
++    notes: `[تبدیل شده از پیام صوتی منشی گویا - سفارش پت‌شاپ MDI]\nمتن صوت: ${call.extractedTranscript || ''}\nنشانی ارسال: ${shippingAddress}\nنحوه تحویل: ${deliveryMethod === 'courier_snapp' ? 'پیک موتوری اسنپ' : 'تحویل حضوری'}`,
++    createdAt: new Date().toISOString(),
++  };
++
++  if (!store.invoices) store.invoices = [];
++  store.invoices.unshift(newInvoice);
++
++  // Add task to staff task carthable
++  const newTask = {
++    id: `task-ps-${Date.now()}`,
++    title: `بسته‌بندی و ارسال سفارش تلفنی پت‌شاپ (${invoiceNumber})`,
++    description: `سفارش تلفنی به شماره فاکتور ${invoiceNumber} برای مشتری ${customerName} (${customerPhone}) ثبت گردید.\nنشانی: ${shippingAddress}\nاقلام سفارش:\n${items.map((it: any) => `- ${it.quantity || 1} عدد ${it.name} (فی: ${(Number(it.unitPrice) || 0).toLocaleString('fa-IR')} ت)`).join('\n')}`,
++    priority: 'high' as const,
++    department: 'petshop' as const,
++    assignedTo: 'petshop.mehregan',
++    assignedToName: 'مسئول پت‌شاپ و انبار MDI',
++    status: 'pending' as const,
++    createdBy: 'telephony_ivr',
++    createdByName: 'منشی گویای کلینیک',
++    createdAt: new Date().toISOString(),
++    dueDate: 'امروز',
++    notes: [],
++  };
++  if (!store.tasks) store.tasks = [];
++  store.tasks.unshift(newTask);
++
++  // Update call status
++  call.status = 'converted_to_order';
++  call.convertedEntityId = invoiceId;
++  call.structuredOrderData = {
++    items,
++    shippingAddress,
++    recipientName: customerName,
++    recipientPhone: customerPhone,
++    estimatedTotal: totalAmount,
++    deliveryMethod,
++  };
++  saveStore();
++
++  return res.json({
++    success: true,
++    message: `سفارش صوتی پت‌شاپ با شماره فاکتور ${invoiceNumber} و وظیفه ارسال در کارتابل پرسنل ثبت شد.`,
++    invoice: newInvoice,
++    task: newTask,
++  });
++});
++
++app.post('/api/telephony/calls/batch-review', (req: Request, res: Response) => {
++  const { callIds, reviewerName } = req.body || {};
++  let count = 0;
++  if (Array.isArray(callIds) && store.telephonyCalls) {
++    store.telephonyCalls.forEach((call: any) => {
++      if (callIds.includes(call.id) && call.status === 'pending_review') {
++        call.status = 'reviewed';
++        call.staffNotes = (call.staffNotes ? call.staffNotes + '\n' : '') + `[بررسی انتهای روز توسط ${reviewerName || 'مدیر شیفت'} در تاریخ ${new Date().toLocaleDateString('fa-IR')}]`;
++        count++;
++      }
++    });
++    saveStore();
++  }
++  return res.json({ success: true, reviewedCount: count, message: `${count} تماس با موفقیت بررسی و تایید شدند.` });
++});
++
++app.post('/api/telephony/ai-structure-transcript', async (req: Request, res: Response) => {
++  const { transcript, callerPhone, callerName } = req.body || {};
++  if (!transcript || typeof transcript !== 'string') {
++    return uniformResponse(res, 400, { success: false, error: 'متن پیاده‌شده صوت الزامی است.' });
++  }
++
++  // 1. Try Gemini AI if available
++  try {
++    const ai = getGeminiClient();
++    const prompt = `شما دستیار هوشمند کلینیک دامپزشکی و پت‌شاپ مهرگان اصفهان هستید.
++متن زیر مکالمه یا پیام صوتی ضبط شده یک مشتری برای سفارش پت‌شاپ یا نوبت است:
++"${transcript}"
++
++شماره تماس‌گیرنده: "${callerPhone || ''}"
++نام تماس‌گیرنده: "${callerName || ''}"
++
++لطفاً اطلاعات را استخراج کرده و به صورت یک آبجکت JSON معتبر و بدون هیچ متن اضافه یا کدبلاک برگردانید:
++{
++  "items": [
++    { "name": "نام کالا", "quantity": 1, "unitPrice": 0, "notes": "توضیح وزن یا نژاد" }
++  ],
++  "shippingAddress": "نشانی یا محله اصفهان اگر ذکر شده، در غیر این صورت خالی",
++  "recipientName": "نام گیرنده اگر ذکر شده",
++  "recipientPhone": "شماره تماس اگر در متن ذکر شده یا شماره تماس‌گیرنده",
++  "deliveryMethod": "courier_snapp یا in_person یا unspecified",
++  "notes": "نکات تکمیلی"
++}`;
++
++    const response = await ai.models.generateContent({
++      model: 'gemini-2.5-flash',
++      contents: prompt,
++      config: {
++        responseMimeType: 'application/json',
++      },
++    });
++
++    const parsedJson = JSON.parse(response.text || '{}');
++    if (parsedJson && Array.isArray(parsedJson.items) && parsedJson.items.length > 0) {
++      return res.json({ success: true, structuredData: parsedJson, source: 'gemini' });
++    }
++  } catch (geminiErr) {
++    console.warn('Gemini extraction fallback to local NLP regex parser:', (geminiErr as Error).message);
++  }
++
++  // 2. High-Quality Fallback Persian Rule-Based Parser (Works 100% offline and zero quota)
++  const items: Array<{ name: string; quantity: number; unitPrice: number; notes?: string }> = [];
++  const text = transcript.replace(/\u200c/g, ' ');
++
++  // Parse Persian numerals into digits
++  const persianNumberMap: Record<string, number> = {
++    'یک': 1, 'دو': 2, 'سه': 3, 'چهار': 4, 'پنج': 5, 'شش': 6, 'هفت': 7, 'هشت': 8, 'نه': 9, 'ده': 10,
++    '۱': 1, '۲': 2, '۳': 3, '۴': 4, '۵': 5, '۶': 6, '۷': 7, '۸': 8, '۹': 9, '۱۰': 10,
++  };
++
++  // Common catalog items and prices
++  const knownKeywords = [
++    { key: 'غذای خشک یورینری', name: 'غذای خشک رژیمی یورینری گربه (Royal Canin)', price: 1850000 },
++    { key: 'غذای خشک رویال', name: 'غذای خشک رویال کنین', price: 1600000 },
++    { key: 'رویال کنین', name: 'غذای رویال کنین', price: 1600000 },
++    { key: 'مالت', name: 'خمیر مالت آنتی هیربال (Beaphar)', price: 450000 },
++    { key: 'خاک گربه', name: 'خاک بستر گربه گرانول معطر', price: 180000 },
++    { key: 'کنسرو گربه', name: 'کنسرو مخصوص گربه', price: 120000 },
++    { key: 'کنسرو سگ', name: 'کنسرو تقویتی سگ', price: 140000 },
++    { key: 'شامپو', name: 'شامپو ضد حساسیت حیوانات خانگی', price: 220000 },
++    { key: 'قرص ضد انگل', name: 'قرص ضد انگل داخلی ورمافیکس', price: 90000 },
++    { key: 'گلوکزآمین', name: 'مکمل مفاصل و گلوکزآمین بیفار', price: 680000 },
++    { key: 'پوچ', name: 'پوچ ژله‌ای گربه', price: 75000 },
++    { key: 'تشویقی', name: 'تشویقی پروتئینی سگ/گربه', price: 150000 },
++    { key: 'شیر خشک', name: 'شیر خشک مخصوص توله و بچه گربه', price: 320000 },
++    { key: 'پد زیرانداز', name: 'بسته پد زیرانداز بهداشتی', price: 190000 },
++  ];
++
++  for (const kw of knownKeywords) {
++    if (text.includes(kw.key)) {
++      // Find quantity near keyword
++      let qty = 1;
++      const regex = new RegExp(`([یک|دو|سه|چهار|پنج|شش|هفت|هشت|نه|ده|\\d+]+)\\s*(بسته|عدد|قوطی|کیلو|باکس|تیوب)?\\s*(از)?\\s*${kw.key}`, 'i');
++      const match = text.match(regex);
++      if (match && match[1]) {
++        const numStr = match[1].trim();
++        qty = persianNumberMap[numStr] || parseInt(numStr, 10) || 1;
++      }
++      items.push({
++        name: kw.name,
++        quantity: qty,
++        unitPrice: kw.price,
++      });
++    }
++  }
++
++  // If no known keyword matched, create a generic entry from text snippet
++  if (items.length === 0) {
++    items.push({
++      name: text.length > 50 ? text.slice(0, 50) + '...' : text,
++      quantity: 1,
++      unitPrice: 350000,
++      notes: 'اقلام نیازمند استعلام تلفنی با مراجع',
++    });
++  }
++
++  // Detect Esfahan address landmarks
++  let shippingAddress = '';
++  const isfahanLocations = ['توحید', 'مهرداد', 'شریعتی', 'مرداویج', 'مشکلانی', 'نظر غربی', 'نظر شرقی', 'چهارباغ', 'شیخ صدوق', 'آپادانا', 'بزرگمهر', 'دروازه شیراز', 'پل فلزی', 'سعادت آباد'];
++  for (const loc of isfahanLocations) {
++    if (text.includes(loc)) {
++      const idx = text.indexOf(loc);
++      shippingAddress = 'اصفهان، ' + text.slice(Math.max(0, idx - 10), Math.min(text.length, idx + 45)).trim();
++      break;
++    }
++  }
++
++  const deliveryMethod = text.includes('اسنپ') || text.includes('پیک') || text.includes('بفرستید') || text.includes('ارسال')
++    ? 'courier_snapp'
++    : 'unspecified';
++
++  const structuredData = {
++    items,
++    shippingAddress: shippingAddress || 'اصفهان (تماس تلفنی جهت اخذ لوکیشن دقیق)',
++    recipientName: callerName || 'مشتری سفارش صوتی',
++    recipientPhone: callerPhone || '',
++    deliveryMethod,
++    estimatedTotal: items.reduce((sum, it) => sum + it.unitPrice * it.quantity, 0),
++  };
++
++  return res.json({ success: true, structuredData, source: 'rule_based_nlp' });
++});
++
++app.post('/api/telephony/simulate-call', async (req: Request, res: Response) => {
++  const { callerPhone, keySelected, messageAudioText } = req.body || {};
++  const phone = callerPhone || '09133115509';
++  const key = keySelected || '2'; // 1: address, 2: surgery, 3: petshop
++
++  let queueType: 'surgery_appointment' | 'petshop_order' | 'address_inquiry' = 'surgery_appointment';
++  if (key === '1') queueType = 'address_inquiry';
++  else if (key === '3') queueType = 'petshop_order';
++
++  const simulatedCall = {
++    id: `call-sim-${Date.now()}`,
++    callerId: phone,
++    callerName: `مخاطب آزمایشی مودم (${phone})`,
++    dateTime: new Date().toLocaleDateString('fa-IR') + ' - ' + new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }),
++    durationSeconds: key === '1' ? 24 : 45,
++    queueType,
++    status: 'pending_review' as const,
++    keySelected: key,
++    hasAudio: key !== '1',
++    audioDurationSec: key !== '1' ? 30 : 0,
++    extractedTranscript:
++      messageAudioText ||
++      (key === '2'
++        ? 'سلام، لطفا برای جراحی جرم‌گیری و معاینه دندان سگ ژرمن برای پس‌فردا وقت بگذارید.'
++        : key === '3'
++        ? 'سلام، تقاضای ارسال مکمل گلوکزآمین بیفار و قرص ضد انگل دارم.'
++        : 'درخواست آدرس و لوکیشن کلینیک مهرگان از منشی تلفنی.'),
++    staffNotes: 'تماس تستی از طریق شبیه‌ساز سخت‌افزار مودم دیال‌آپ ثبت شد.',
++    smsFollowupSent: false,
++    baleLinkIncluded: false,
++    smsDeliveryStatus: 'pending' as 'pending' | 'delivered' | 'failed',
++  };
++
++  // If auto SMS enabled
++  const cfg = store.telephonyIvrConfig || defaultIvrConfig;
++  if (cfg.autoSendSmsForAddress && /^0?9\d{9}$/.test(phone.replace(/\s+/g, ''))) {
++    try {
++      const smsText = `کلینیک حیوانات خانگی مهرگان اصفهان\nآدرس: خ توحید میانی، ک ۲۲ مشکلانی\nمسیریابی نشان: https://neshan.org/maps/@32.6331396,51.6532624,17z\nثبت نوبت بله: https://ble.ir/mehreganpetclinic_bot\nاورژانس: 093021820044`;
++      await sendDirectSms({
++        recipients: [phone],
++        message: smsText,
++      });
++      simulatedCall.smsFollowupSent = true;
++      simulatedCall.smsDeliveryStatus = 'delivered';
++      simulatedCall.baleLinkIncluded = true;
++    } catch (e) {
++      console.error('Simulation SMS dispatch error:', e);
++      simulatedCall.smsFollowupSent = true;
++      simulatedCall.smsDeliveryStatus = 'failed';
++    }
++  }
++
++  if (!store.telephonyCalls) store.telephonyCalls = [];
++  store.telephonyCalls.unshift(simulatedCall);
++  saveStore();
++
++  return res.json({
++    success: true,
++    message: 'شبیه‌سازی تماس ورودی خط مخابرات با موفقیت انجام شد.',
++    call: simulatedCall,
++  });
++});
++

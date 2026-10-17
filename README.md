@@ -1,11 +1,27 @@
-<div align="center">
+# مخزن کلینیک دامپزشکی مهرگان (vet-Clinic / پیشنهاد Version5New)
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+این مخزن به عنوان مخزن توسعه، پچ‌سازی و بررسی قابلیت‌های جدید برای پروژه اصلی (`Version5New`) کلینیک دامپزشکی مهرگان اصفهان عمل می‌کند.
 
-  <h1>Built with AI Studio</h2>
+> **قاعده تفکیک و ایمنی:** این مخزن مستقیماً روی سرور تولید رونویسی نمی‌شود. تمامی قابلیت‌های تأییدشده به صورت بسته‌های وصله ماژولار و مستقل زیر پوشه `patches/` قرار دارند.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## مستندات اصلی و حقیقت فنی
+- [گزارش حقیقت‌سنجی و وضعیت واقعی مؤلفه‌ها (REPORT.md)](./REPORT.md)
+- [برنامه انتقال وصله‌های ماژولار (patches/TRANSFER-PATCH-PLAN.md)](./patches/TRANSFER-PATCH-PLAN.md)
+- [راهنمای جامع استقرار سرور لینوکس (DEPLOY_LINUX.md)](./DEPLOY_LINUX.md)
+- [دستورالعمل‌های کاری عامل‌ها (AGENTS.md)](./AGENTS.md)
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## بسته‌های قابل انتقال (Patches)
+۱. `patches/P1.1-bale-bot`: ربات مستقل پیام‌رسان بله با سرویس لینوکس systemd  
+۲. `patches/P1.2-ippanel-sms`: سرویس پیامک خدماتی IPPanel  
+۳. `patches/P1.3-internal-messenger`: پیام‌رسان داخلی و احضار اضطراری بر بستر WebSocket  
+۴. `patches/P1.4-mobile-navigation`: نوار ناوبری موبایل و کشوی سایدبار واکنش‌گرا  
+۵. `patches/P1.5-public-landing`: صفحه فرود عمومی و لینک‌های مسیریابی نشان/بلد/گوگل  
+۶. `patches/P1.6-radiography-dicom`: پایپلاین سخت‌افزاری امن رادیوگرافی (ویندوز ۷ -> ncase3 -> VPS)  
+۷. `patches/P1.7-legacy-sql-server`: اتصال و اسکن فقط‌خواندنی دیتابیس‌های قدیمی (dam2000 و Parsian1405)  
 
-</div>
+## آزمون‌های صحت‌سنجی محلی
+```bash
+npm run lint             # بررسی نوع داده‌های تایپ‌اسکریپت بدون انتشار
+npm run test:smoke       # آزمون اسموک داخلی ۱۵ اندپوینت پایدار
+npm run production:smoke # آزمون اسموک دامنه عملیاتی کلینیک
+```

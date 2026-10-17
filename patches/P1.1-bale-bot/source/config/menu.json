@@ -1,0 +1,20 @@
+{
+  "welcome_message": "سلام به بازوی هوشمند کلینیک اختصاصی حیوانات خانگی مهرگان خوش آمدید! 🐾\nلطفاً یکی از گزینه‌های زیر را انتخاب نمایید:",
+  "buttons": [
+    [
+      { "text": "📅 ثبت نوبت آنلاین", "callback_data": "appointment" },
+      { "text": "🏥 اطلاعات و آدرس کلینیک", "callback_data": "clinic_info" }
+    ],
+    [
+      { "text": "📋 خدمات و تعرفه‌ها", "callback_data": "services" },
+      { "text": "⏰ ساعات کاری و وضعیت", "callback_data": "working_hours" }
+    ],
+    [
+      { "text": "🤖 مشاوره پزشکی هوشمند", "callback_data": "consultation" },
+      { "text": "🚨 راهنمای اورژانس ۲۴ ساعته", "callback_data": "emergency" }
+    ],
+    [
+      { "text": "👨‍⚕️ ارتباط مستقیم با اپراتور", "callback_data": "operator" }
+    ]
+  ]
+}

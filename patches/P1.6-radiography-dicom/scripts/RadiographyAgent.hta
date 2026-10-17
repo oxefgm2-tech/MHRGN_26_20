@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>کلینیک دامپزشکی مهرگان | پنل مدیریت و همگام‌ساز رادیوگرافی (ویندوز ۷)</title>
+  <hta:application
+    id="MehreganRadioApp"
+    applicationname="MehreganRadiographyAgent"
+    border="thick"
+    borderstyle="normal"
+    caption="yes"
+    contextmenu="no"
+    maximizebutton="yes"
+    minimizebutton="yes"
+    navigable="yes"
+    scroll="yes"
+    selection="no"
+    showintaskbar="yes"
+    singleinstance="yes"
+    sysmenu="yes"
+    version="1.0"
+    windowstate="normal"
+  />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
+    body { background-color: #F4F6F0; color: #1E293B; direction: rtl; text-align: right; padding: 16px; font-size: 13px; }
+    .header { background: #1B4D3E; color: white; padding: 14px 20px; border-radius: 8px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 16px; font-weight: bold; }
+    .badge { background: #2D6A4F; color: #D8F3DC; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+    .badge-live { background: #E76F51; color: white; animation: blink 1.5s infinite; }
+    .grid { display: table; width: 100%; margin-bottom: 16px; }
+    .col { display: table-cell; vertical-align: top; width: 50%; padding-left: 8px; }
+    .col:last-child { padding-left: 0; padding-right: 8px; }
+    .card { background: white; border-radius: 8px; border: 1px solid #D8E2DC; padding: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 12px; }
+    .card-title { font-weight: bold; font-size: 13px; color: #1B4D3E; margin-bottom: 10px; border-bottom: 2px solid #E9ECEF; padding-bottom: 6px; }
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-weight: bold; font-size: 11px; color: #495057; margin-bottom: 4px; }
+    .input-row { display: table; width: 100%; }
+    .input-cell { display: table-cell; vertical-align: middle; }
+    .input-cell-btn { display: table-cell; vertical-align: middle; width: 85px; padding-right: 6px; }
+    input[type="text"] { width: 100%; padding: 7px 10px; border: 1px solid #CED4DA; border-radius: 4px; font-size: 12px; direction: ltr; text-align: left; background: #FAFBF9; }
+    input[type="text"]:focus { border-color: #1B4D3E; outline: none; background: #FFF; }
+    .btn { background: #1B4D3E; color: white; border: none; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; text-align: center; }
+    .btn:hover { background: #153E32; }
+    .btn-secondary { background: #4A5568; }
+    .btn-secondary:hover { background: #2D3748; }
+    .btn-action { background: #2A9D8F; }
+    .btn-action:hover { background: #21867A; }
+    .btn-save { background: #2B7A78; }
+    .status-bar { background: #E8F5E9; border: 1px solid #A5D6A7; color: #1B5E20; padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; }
+    .file-table-container { max-height: 220px; overflow-y: auto; border: 1px solid #E2E8F0; border-radius: 4px; margin-top: 8px; }
+    table { width: 100%; border-collapse: collapse; text-align: right; font-size: 11px; }
+    th { background: #EDF2F7; padding: 6px 10px; border-bottom: 1px solid #CBD5E0; color: #4A5568; }
+    td { padding: 6px 10px; border-bottom: 1px solid #E2E8F0; }
+    tr:nth-child(even) { background: #F8FAFC; }
+    .log-box { background: #0F172A; color: #38BDF8; font-family: Consolas, monospace; font-size: 11px; padding: 10px; border-radius: 6px; height: 160px; overflow-y: auto; text-align: left; direction: ltr; line-height: 1.5; }
+    .log-entry { margin-bottom: 3px; }
+    .log-time { color: #94A3B8; }
+    .log-ok { color: #4ADE80; }
+    .log-warn { color: #FACC15; }
+    .log-err { color: #F87171; }
+    .timer-pill { background: #FEF3C7; color: #92400E; border: 1px solid #FCD34D; padding: 4px 10px; border-radius: 12px; font-weight: bold; font-size: 11px; display: inline-block; }
+  </style>
+</head>
+<body onload="initAgent()">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <h1>پنل خودکار همگام‌سازی گراف‌های رادیوگرافی</h1>
+      <div style="font-size: 11px; color: #D8F3DC; margin-top: 3px;">
+        جریان یک‌طرفه کامپیوتر ایزوله ویندوز ۷ به سرور کلینیک (ncase3)
+      </div>
+    </div>
+    <div>
+      <span class="badge" id="netStatusBadge">شبکه محلی امن LAN</span>
+      <span class="timer-pill" id="countdownLabel">بررسی در: ۶۰ ثانیه</span>
+    </div>
+  </div>
+
+  <!-- Status alert -->
+  <div class="status-bar" id="statusMessage">
+    سیستم آماده کار است. هر ۶۰ ثانیه یک‌بار پوشه بررسی شده و فایل‌های جدید به طور خودکار به سرور ncase3 منتقل می‌شوند.
+  </div>
+
+  <!-- Grid Configuration -->
+  <div class="grid">
+    <!-- Col 1: Directories Config -->
+    <div class="col">
+      <div class="card">
+        <div class="card-title">تنظیم مسیرهای مبدا و مقصد</div>
+
+        <!-- Source Path -->
+        <div class="form-group">
+          <label>مسیر مبدا (پوشه خروجی نرم‌افزار رادیوگرافی روی ویندوز ۷):</label>
+          <div class="input-row">
+            <div class="input-cell">
+              <input type="text" id="txtSourcePath" value="C:\Radiography\Export" />
+            </div>
+            <div class="input-cell-btn">
+              <button class="btn btn-secondary" onclick="browseSourceFolder()">انتخاب...</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Destination Path -->
+        <div class="form-group">
+          <label>مسیر مقصد (پوشه دریافت در سرور محلی ncase3):</label>
+          <div class="input-row">
+            <div class="input-cell">
+              <input type="text" id="txtDestPath" value="\\ncase3\radiography\incoming" />
+            </div>
+            <div class="input-cell-btn">
+              <button class="btn btn-save" onclick="saveConfiguration()">ذخیره تنظیمات</button>
+            </div>
+          </div>
+          <div style="font-size: 10px; color: #64748B; margin-top: 4px;">
+            * مسیر پیش‌فرض: <code>\\ncase3\radiography\incoming</code> (تنظیمات پس از ذخیره دائمی خواهد ماند)
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="margin-top: 12px; display: flex; gap: 8px;">
+          <button class="btn btn-action" onclick="runSyncCycle(true)" style="width: 48%; margin-left: 2%;">
+            بررسی و ارسال فوری
+          </button>
+          <button class="btn btn-secondary" onclick="refreshFileList()" style="width: 48%;">
+            تازه‌سازی لیست فایل‌ها
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Statistics -->
+      <div class="card">
+        <div class="card-title">آمار فعالیت</div>
+        <div style="display: table; width: 100%; text-align: center;">
+          <div style="display: table-cell; width: 33%; padding: 6px; background: #F1F5F9; border-radius: 4px;">
+            <div style="font-size: 18px; font-weight: bold; color: #1B4D3E;" id="statTotalFiles">۰</div>
+            <div style="font-size: 10px; color: #64748B;">کل فایل‌های مبدا</div>
+          </div>
+          <div style="display: table-cell; width: 33%; padding: 6px; background: #F1F5F9; border-radius: 4px; margin-right: 4px;">
+            <div style="font-size: 18px; font-weight: bold; color: #2A9D8F;" id="statCopiedFiles">۰</div>
+            <div style="font-size: 10px; color: #64748B;">ارسال شده به ncase3</div>
+          </div>
+          <div style="display: table-cell; width: 33%; padding: 6px; background: #F1F5F9; border-radius: 4px; margin-right: 4px;">
+            <div style="font-size: 18px; font-weight: bold; color: #E76F51;" id="statPendingFiles">۰</div>
+            <div style="font-size: 10px; color: #64748B;">در انتظار کپی</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Col 2: File Browser List -->
+    <div class="col">
+      <div class="card">
+        <div class="card-title">محتویات مسیر مبدا (فایل‌ها و فولدرهای گراف رادیولوژی)</div>
+        <div style="font-size: 11px; color: #64748B; margin-bottom: 6px;" id="currentSourceLabel">
+          مسیر جاری: C:\Radiography\Export
+        </div>
+        <div class="file-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>نام فایل / پوشه</th>
+                <th style="width: 70px;">حجم</th>
+                <th style="width: 120px;">تاریخ آخرین تغییر</th>
+                <th style="width: 65px;">وضعیت</th>
+              </tr>
+            </thead>
+            <tbody id="fileTableBody">
+              <tr>
+                <td colspan="4" style="text-align: center; color: #94A3B8; padding: 20px;">در حال بارگذاری لیست فایل‌ها...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Log Terminal -->
+  <div class="card" style="margin-bottom: 0;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+      <span class="card-title" style="margin-bottom: 0; border: none; padding: 0;">گزارش زنده فعالیت‌ها (Log)</span>
+      <button class="btn btn-secondary" onclick="clearLog()" style="padding: 2px 8px; font-size: 10px;">پاکسازی گزارش</button>
+    </div>
+    <div class="log-box" id="logBox">
+      <!-- Logs go here -->
+    </div>
+  </div>
+
+  <!-- JavaScript for HTA / Windows 7 Automation -->
+  <script>
+    var fso = null;
+    var wshShell = null;
+    var countdown = 60;
+    var timerInterval = null;
+    var copiedHistory = {};
+    var configFile = "C:\\Radiography\\Agent\\radiography_agent_config.txt";
+    var historyFile = "C:\\Radiography\\Agent\\copied_history.txt";
+
+    function log(message, type) {
+      var box = document.getElementById("logBox");
+      var d = new Date();
+      var timeStr = ("0" + d.getHours()).slice(-2) + ":" + 
+                    ("0" + d.getMinutes()).slice(-2) + ":" + 
+                    ("0" + d.getSeconds()).slice(-2);
+      var colorClass = "log-ok";
+      if (type === "warn") colorClass = "log-warn";
+      if (type === "err") colorClass = "log-err";
+      
+      var entry = document.createElement("div");
+      entry.className = "log-entry";
+      entry.innerHTML = "<span class='log-time'>[" + timeStr + "]</span> <span class='" + colorClass + "'>" + message + "</span>";
+      box.appendChild(entry);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById("logBox").innerHTML = "";
+    }
+
+    function initAgent() {
+      try {
+        fso = new ActiveXObject("Scripting.FileSystemObject");
+        wshShell = new ActiveXObject("WScript.Shell");
+        log("موتور ActiveX با موفقیت فعال شد. پشتیبانی کامل از فایل سیستم ویندوز ۷ برقرار است.", "ok");
+      } catch (e) {
+        log("هشدار: اجرای مستقیم در مرورگر بدون ActiveX. در صورت استفاده در ویندوز ۷ فایل را با پسوند .hta باز کنید.", "warn");
+      }
+
+      loadSavedConfig();
+      loadCopiedHistory();
+      refreshFileList();
+      runSyncCycle(false);
+
+      // Start 60-second countdown cycle
+      timerInterval = setInterval(function() {
+        countdown--;
+        if (countdown <= 0) {
+          countdown = 60;
+          runSyncCycle(false);
+        }
+        document.getElementById("countdownLabel").innerText = "بررسی در: " + countdown + " ثانیه";
+      }, 1000);
+    }
+
+    function loadSavedConfig() {
+      if (!fso) return;
+      try {
+        if (fso.FileExists(configFile)) {
+          var file = fso.OpenTextFile(configFile, 1, false);
+          var lines = file.ReadAll().split("\n");
+          file.Close();
+          for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].replace(/^\s+|\s+$/g, '');
+            if (line.indexOf("SOURCE=") === 0) {
+              document.getElementById("txtSourcePath").value = line.substring(7);
+            } else if (line.indexOf("DEST=") === 0) {
+              document.getElementById("txtDestPath").value = line.substring(5);
+            }
+          }
+          log("تنظیمات ذخیره شده از قبل با موفقیت فراخوانی شد.", "ok");
+        }
+      } catch (e) {
+        log("بارگذاری تنظیمات با خطا مواجه شد: " + e.message, "warn");
+      }
+    }
+
+    function saveConfiguration() {
+      var src = document.getElementById("txtSourcePath").value.replace(/^\s+|\s+$/g, '');
+      var dest = document.getElementById("txtDestPath").value.replace(/^\s+|\s+$/g, '');
+      
+      if (!src || !dest) {
+        alert("لطفاً هر دو مسیر مبدا و مقصد را تکمیل فرمایید.");
+        return;
+      }
+
+      if (fso) {
+        try {
+          var folder = "C:\\Radiography\\Agent";
+          if (!fso.FolderExists(folder)) {
+            fso.CreateFolder(folder);
+          }
+          var file = fso.OpenTextFile(configFile, 2, true);
+          file.WriteLine("SOURCE=" + src);
+          file.WriteLine("DEST=" + dest);
+          file.Close();
+          log("تنظیمات جدید در " + configFile + " ذخیره شد و ماندگار است.", "ok");
+          document.getElementById("statusMessage").innerText = "تنظیمات مبدا و مقصد با موفقیت ذخیره شدند و به عنوان پیش‌فرض ثبت گردیدند.";
+          refreshFileList();
+        } catch (e) {
+          log("خطا در ذخیره فایل تنظیمات: " + e.message, "err");
+        }
+      } else {
+        localStorage.setItem("radio_source", src);
+        localStorage.setItem("radio_dest", dest);
+        log("تنظیمات در حافظه مرورگر ذخیره گردید.", "ok");
+      }
+    }
+
+    function loadCopiedHistory() {
+      if (!fso) return;
+      try {
+        if (fso.FileExists(historyFile)) {
+          var file = fso.OpenTextFile(historyFile, 1, false);
+          var lines = file.ReadAll().split("\n");
+          file.Close();
+          for (var i = 0; i < lines.length; i++) {
+            var key = lines[i].replace(/^\s+|\s+$/g, '');
+            if (key) copiedHistory[key] = true;
+          }
+        }
+      } catch (e) {}
+    }
+
+    function markAsCopied(key) {
+      copiedHistory[key] = true;
+      if (!fso) return;
+      try {
+        var file = fso.OpenTextFile(historyFile, 8, true);
+        file.WriteLine(key);
+        file.Close();
+      } catch (e) {}
+    }
+
+    function browseSourceFolder() {
+      try {
+        var shell = new ActiveXObject("Shell.Application");
+        var folder = shell.BrowseForFolder(0, "پوشه مبدا خروجی رادیوگرافی را انتخاب کنید:", 0, 0);
+        if (folder) {
+          document.getElementById("txtSourcePath").value = folder.Self.Path;
+          refreshFileList();
+          saveConfiguration();
+        }
+      } catch (e) {
+        var newPath = prompt("مسیر پوشه مبدا را دستی وارد نمایید:", document.getElementById("txtSourcePath").value);
+        if (newPath) {
+          document.getElementById("txtSourcePath").value = newPath;
+          refreshFileList();
+          saveConfiguration();
+        }
+      }
+    }
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 B';
+      var k = 1024;
+      var sizes = ['B', 'KB', 'MB', 'GB'];
+      var i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    function refreshFileList() {
+      var srcPath = document.getElementById("txtSourcePath").value.replace(/^\s+|\s+$/g, '');
+      document.getElementById("currentSourceLabel").innerText = "مسیر جاری: " + srcPath;
+      var tbody = document.getElementById("fileTableBody");
+      tbody.innerHTML = "";
+
+      if (!fso) {
+        tbody.innerHTML = "<tr><td colspan='4' style='text-align: center; color: #64748B;'>در حال کار در حالت دمو (بدون ActiveX).</td></tr>";
+        return;
+      }
+
+      if (!fso.FolderExists(srcPath)) {
+        tbody.innerHTML = "<tr><td colspan='4' style='text-align: center; color: #EF4444;'>پوشه مبدا وجود ندارد یا در دسترس نیست!</td></tr>";
+        return;
+      }
+
+      try {
+        var folder = fso.GetFolder(srcPath);
+        var subFolders = new Enumerator(folder.SubFolders);
+        var files = new Enumerator(folder.Files);
+        var totalCount = 0;
+        var copiedCount = 0;
+        var pendingCount = 0;
+
+        // Subfolders
+        for (; !subFolders.atEnd(); subFolders.moveNext()) {
+          var sf = subFolders.item();
+          var tr = document.createElement("tr");
+          tr.innerHTML = "<td>📁 <strong>" + sf.Name + "</strong></td><td>-</td><td>" + sf.DateLastModified + "</td><td><span style='color: #64748B;'>پوشه</span></td>";
+          tbody.appendChild(tr);
+        }
+
+        // Files
+        for (; !files.atEnd(); files.moveNext()) {
+          var fl = files.item();
+          totalCount++;
+          var fileKey = fl.Name + "_" + fl.Size + "_" + fl.DateLastModified;
+          var isCopied = copiedHistory[fileKey];
+
+          if (isCopied) {
+            copiedCount++;
+          } else {
+            pendingCount++;
+          }
+
+          var tr = document.createElement("tr");
+          var statusBadge = isCopied 
+            ? "<span style='color: #2E7D32; font-weight: bold;'>ارسال شده ✓</span>" 
+            : "<span style='color: #E65100; font-weight: bold;'>آماده کپی ⏳</span>";
+
+          tr.innerHTML = "<td>📄 " + fl.Name + "</td><td style='direction: ltr;'>" + formatBytes(fl.Size) + "</td><td>" + fl.DateLastModified + "</td><td>" + statusBadge + "</td>";
+          tbody.appendChild(tr);
+        }
+
+        document.getElementById("statTotalFiles").innerText = totalCount;
+        document.getElementById("statCopiedFiles").innerText = copiedCount;
+        document.getElementById("statPendingFiles").innerText = pendingCount;
+
+        if (totalCount === 0) {
+          tbody.innerHTML = "<tr><td colspan='4' style='text-align: center; color: #94A3B8; padding: 20px;'>پوشه مبدا خالی است و هنوز هیچ فایل گرافی تولید نشده است.</td></tr>";
+        }
+      } catch (e) {
+        tbody.innerHTML = "<tr><td colspan='4' style='text-align: center; color: #EF4444;'>خطا در پیمایش فایل‌ها: " + e.message + "</td></tr>";
+      }
+    }
+
+    function runSyncCycle(manualTrigger) {
+      var src = document.getElementById("txtSourcePath").value.replace(/^\s+|\s+$/g, '');
+      var dest = document.getElementById("txtDestPath").value.replace(/^\s+|\s+$/g, '');
+
+      if (manualTrigger) {
+        log("اجرای بررسی دستی به درخواست کاربر...", "ok");
+      }
+
+      if (!fso) {
+        log("موتور ActiveX در دسترس نیست. شبیه‌سازی بررسی...", "warn");
+        return;
+      }
+
+      if (!fso.FolderExists(src)) {
+        log("پوشه مبدا یافت نشد: " + src, "err");
+        return;
+      }
+
+      // Check destination connectivity
+      if (!fso.FolderExists(dest)) {
+        try {
+          fso.CreateFolder(dest);
+          log("پوشه مقصد در سرور ncase3 ایجاد شد: " + dest, "ok");
+        } catch (e) {
+          log("عدم دسترسی به مسیر مقصد در سرور: " + dest + " (بررسی روشن بودن ncase3 و شبکه)", "err");
+          document.getElementById("statusMessage").innerText = "خطا در برقراری ارتباط با سرور ncase3 (" + dest + "). لطفاً اتصال کابل LAN را چک فرمایید.";
+          document.getElementById("statusMessage").style.background = "#FFEBEE";
+          document.getElementById("statusMessage").style.color = "#C62828";
+          return;
+        }
+      }
+
+      document.getElementById("statusMessage").style.background = "#E8F5E9";
+      document.getElementById("statusMessage").style.color = "#1B5E20";
+
+      try {
+        var folder = fso.GetFolder(src);
+        var files = new Enumerator(folder.Files);
+        var newlyCopied = 0;
+
+        for (; !files.atEnd(); files.moveNext()) {
+          var fl = files.item();
+          var fileKey = fl.Name + "_" + fl.Size + "_" + fl.DateLastModified;
+
+          if (!copiedHistory[fileKey]) {
+            var targetFilePath = dest + "\\" + fl.Name;
+            try {
+              fso.CopyFile(fl.Path, targetFilePath, true);
+              markAsCopied(fileKey);
+              newlyCopied++;
+              log("فایل جدید با موفقیت به سرور ncase3 منتقل شد: " + fl.Name + " (" + formatBytes(fl.Size) + ")", "ok");
+            } catch (copyErr) {
+              log("خطا در کپی فایل " + fl.Name + ": " + copyErr.message, "err");
+            }
+          }
+        }
+
+        if (newlyCopied > 0) {
+          document.getElementById("statusMessage").innerText = newlyCopied + " فایل گراف جدید با موفقیت به سرور کلینیک (ncase3) منتقل شد.";
+          refreshFileList();
+        } else if (manualTrigger) {
+          log("بررسی به اتمام رسید. فایل جدیدی برای انتقال وجود ندارد.", "ok");
+        }
+      } catch (e) {
+        log("خطا در چرخه همگام‌سازی: " + e.message, "err");
+      }
+    }
+  </script>
+</body>
+</html>

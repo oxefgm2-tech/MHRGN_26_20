@@ -1,0 +1,73 @@
+{
+  "categories": [
+    {
+      "id": "visit_exam",
+      "title": "ویزیت و معاینه",
+      "services": [
+        { "id": "specialist_visit", "name": "ویزیت تخصصی دامپزشک", "price": "۲۰۰,۰۰۰ تومان", "duration": "۳۰ دقیقه" },
+        { "id": "general_exam", "name": "معاینه عمومی", "price": "۱۵۰,۰۰۰ تومان", "duration": "۲۰ دقیقه" },
+        { "id": "home_visit", "name": "ویزیت در محل", "price": "۵۰۰,۰۰۰ تومان", "duration": "۴۵ دقیقه" },
+        { "id": "nutrition_consult", "name": "مشاوره تغذیه", "price": "۱۰۰,۰۰۰ تومان", "duration": "۲۰ دقیقه" }
+      ]
+    },
+    {
+      "id": "vaccine_prevention",
+      "title": "واکسیناسیون و پیشگیری",
+      "services": [
+        { "id": "dog_5in1", "name": "واکسن پنج‌گانه سگ", "price": "۳۵۰,۰۰۰ تومان", "duration": "۱۵ دقیقه" },
+        { "id": "cat_3in1", "name": "واکسن سه‌گانه گربه", "price": "۳۰۰,۰۰۰ تومان", "duration": "۱۵ دقیقه" },
+        { "id": "rabies", "name": "واکسن هاری", "price": "۲۵۰,۰۰۰ تومان", "duration": "۱۰ دقیقه" },
+        { "id": "internal_deworming", "name": "انگل‌زدایی داخلی", "price": "۱۲۰,۰۰۰ تومان", "duration": "۱۰ دقیقه" },
+        { "id": "external_deworming", "name": "انگل‌زدایی خارجی", "price": "۱۵۰,۰۰۰ تومان", "duration": "۱۵ دقیقه" }
+      ]
+    },
+    {
+      "id": "beauty_grooming",
+      "title": "زیبایی و پیرایش",
+      "services": [
+        { "id": "full_grooming", "name": "پیرایش کامل مو", "price": "۴۰۰,۰۰۰ تومان", "duration": "۶۰ دقیقه" },
+        { "id": "bath_wash", "name": "شستشو و استحمام", "price": "۲۵۰,۰۰۰ تومان", "duration": "۴۵ دقیقه" },
+        { "id": "nail_trimming", "name": "ناخن‌گیری", "price": "۸۰,۰۰۰ تومان", "duration": "۱۰ دقیقه" },
+        { "id": "ear_cleaning", "name": "تمیز کردن گوش", "price": "۶۰,۰۰۰ تومان", "duration": "۱۰ دقیقه" },
+        { "id": "dental_hygiene", "name": "مسواک و بهداشت دهان", "price": "۱۰۰,۰۰۰ تومان", "duration": "۱۵ دقیقه" },
+        { "id": "full_beauty_package", "name": "پکیج کامل زیبایی", "price": "۷۰۰,۰۰۰ تومان", "duration": "۹۰ دقیقه" }
+      ]
+    },
+    {
+      "id": "surgery_treatment",
+      "title": "جراحی و درمان",
+      "services": [
+        { "id": "female_dog_neutering", "name": "عقیم‌سازی سگ ماده", "price": "۲,۵۰۰,۰۰۰ تومان", "duration": "۹۰ دقیقه" },
+        { "id": "male_dog_neutering", "name": "عقیم‌سازی سگ نر", "price": "۱,۵۰۰,۰۰۰ تومان", "duration": "۶۰ دقیقه" },
+        { "id": "female_cat_neutering", "name": "عقیم‌سازی گربه ماده", "price": "۱,۸۰۰,۰۰۰ تومان", "duration": "۶۰ دقیقه" },
+        { "id": "male_cat_neutering", "name": "عقیم‌سازی گربه نر", "price": "۱,۲۰۰,۰۰۰ تومان", "duration": "۴۵ دقیقه" },
+        { "id": "soft_tissue_surgery", "name": "جراحی بافت نرم", "price": "۳,۰۰۰,۰۰۰ تومان", "duration": "۱۲۰ دقیقه" },
+        { "id": "orthopedic_surgery", "name": "جراحی ارتوپدی", "price": "۵,۰۰۰,۰۰۰ تومان", "duration": "۱۸۰ دقیقه" },
+        { "id": "fracture_treatment", "name": "درمان شکستگی", "price": "۲,۰۰۰,۰۰۰ تومان", "duration": "۶۰ دقیقه" },
+        { "id": "internal_medicine", "name": "درمان بیماری‌های داخلی", "price": "۳۰۰,۰۰۰ تومان", "duration": "۳۰ دقیقه" }
+      ]
+    },
+    {
+      "id": "lab_imaging",
+      "title": "آزمایشگاه و تصویربرداری",
+      "services": [
+        { "id": "complete_blood_count", "name": "آزمایش خون کامل", "price": "۴۵۰,۰۰۰ تومان", "duration": "۲۰ دقیقه" },
+        { "id": "urinalysis", "name": "آزمایش ادرار", "price": "۲۰۰,۰۰۰ تومان", "duration": "۱۵ دقیقه" },
+        { "id": "fecal_exam", "name": "آزمایش مدفوع", "price": "۱۵۰,۰۰۰ تومان", "duration": "۱۵ دقیقه" },
+        { "id": "xray_radiology", "name": "رادیولوژی (X-Ray)", "price": "۳۵۰,۰۰۰ تومان", "duration": "۲۰ دقیقه" },
+        { "id": "ultrasound", "name": "سونوگرافی", "price": "۵۰۰,۰۰۰ تومان", "duration": "۳۰ دقیقه" },
+        { "id": "ecg_cardio", "name": "الکتروکاردیوگرافی (نوار قلب)", "price": "۳۰۰,۰۰۰ تومان", "duration": "۲۰ دقیقه" }
+      ]
+    },
+    {
+      "id": "special_services",
+      "title": "خدمات ویژه",
+      "services": [
+        { "id": "pet_hotel_daily", "name": "پت‌هتل (نگهداری روزانه)", "price": "۲۰۰,۰۰۰ تومان/روز", "duration": "۲۴ ساعت" },
+        { "id": "pet_hotel_weekly", "name": "پت‌هتل (نگهداری هفتگی)", "price": "۱,۰۰۰,۰۰۰ تومان/هفته", "duration": "۷ روز" },
+        { "id": "pro_bath_dry", "name": "حمام و خشک کردن حرفه‌ای", "price": "۳۰۰,۰۰۰ تومان", "duration": "۴۵ دقیقه" },
+        { "id": "extra_hair_shave", "name": "تراشیدن موهای اضافی (نژادهای موبلند)", "price": "۳۵۰,۰۰۰ تومان", "duration": "۴۵ دقیقه" }
+      ]
+    }
+  ]
+}

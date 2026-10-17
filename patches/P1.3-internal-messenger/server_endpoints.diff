@@ -1,0 +1,68 @@
+--- server.ts.orig
++++ server.ts
+@@ -3,6 +3,7 @@
++import { WebSocketServer, WebSocket } from 'ws';
++
++// WebSocket broadcast helper
++const wsClients = new Set<WebSocket>();
++function broadcastWsEvent(event: any) {
++  const msg = JSON.stringify(event);
++  for (const client of wsClients) {
++    if (client.readyState === WebSocket.OPEN) {
++      client.send(msg);
++    }
++  }
++}
++
++// Endpoints for Chat Rooms & Emergency Summoning
++app.get('/api/chat/rooms', (req: Request, res: Response) => {
++  const user = sessionUser(req);
++  if (!user) return uniformResponse(res, 401, { success: false, error: 'ورود لازم است.' });
++  ensureChatStore();
++  const rooms = store.chatRooms!.filter((room) => {
++    if (room.members.includes('all')) return true;
++    if (room.members.includes(user.username)) return true;
++    if (isTaskManager(user)) return true;
++    return false;
++  });
++  return uniformResponse(res, 200, { success: true, count: rooms.length, data: rooms });
++});
++
++app.post('/api/chat/rooms/:id/messages', (req: Request, res: Response) => {
++  const user = sessionUser(req);
++  if (!user) return uniformResponse(res, 401, { success: false, error: 'ورود لازم است.' });
++  const room = store.chatRooms!.find((r) => r.id === req.params.id);
++  if (!room) return uniformResponse(res, 404, { success: false, error: 'اتاق گفتگو یافت نشد.' });
++  const { content, type, audioData, audioDurationSec, isUrgent } = req.body || {};
++  const newMsg = {
++    id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
++    roomId: room.id,
++    senderUsername: user.username,
++    senderName: user.name,
++    senderRole: user.role,
++    type: type || 'text',
++    content: content || '',
++    createdAt: new Date().toISOString(),
++    isUrgent: Boolean(isUrgent),
++  };
++  store.chatMessages!.push(newMsg);
++  saveStore();
++  broadcastWsEvent({ type: 'chat:message', roomId: room.id, message: newMsg });
++  return uniformResponse(res, 201, { success: true, data: newMsg });
++});
++
++app.post('/api/chat/rooms/:id/force-attendance', (req: Request, res: Response) => {
++  const user = sessionUser(req);
++  if (!user || !isTaskManager(user)) {
++    return uniformResponse(res, 403, { success: false, error: 'تنها مدیریت ارشد مجاز به صدور دستور احضار اجباری است.' });
++  }
++  // Starts emergency summoning call across all devices
++  ...
++});
++
++// WebSocket Server Initialization on HTTP Server
++const wss = new WebSocketServer({ server, path: '/ws' });
++wss.on('connection', (ws) => {
++  wsClients.add(ws);
++  ws.on('close', () => wsClients.delete(ws));
++});

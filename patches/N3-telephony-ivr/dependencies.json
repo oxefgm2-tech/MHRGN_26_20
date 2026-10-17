@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "lucide-react": "^1.16.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/node": "^22.14.0"
+  },
+  "sipGatewayRecommended": [
+    "Asterisk PBX >= 18 (chan_pjsip + res_pjsip)",
+    "FreeSWITCH >= 1.10",
+    "Grandstream HT813 / Dinstar DAG1000-1O FXO Gateway"
+  ],
+  "notes": "Telephony management UI and REST APIs are hardware-independent. Audio execution requires an FXO SIP gateway connected to the physical clinic PSTN line."
+}

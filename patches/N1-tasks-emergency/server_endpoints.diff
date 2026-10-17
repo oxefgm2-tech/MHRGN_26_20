@@ -1,0 +1,125 @@
+--- a/server.ts
++++ b/server.ts
+@@ -2950,123 +2950,123 @@
+ app.get('/api/staff', (req: Request, res: Response) => {
+   const user = sessionUser(req);
+   if (!user) return uniformResponse(res, 401, { success: false, error: 'ورود لازم است.' });
+   const data = configuredAuthUsers().map(({ username, name, role, phone }) => ({ username, name, role, phone }));
+   return uniformResponse(res, 200, { success: true, count: data.length, data });
+ });
+ 
+ app.get('/api/tasks', (req: Request, res: Response) => {
+   const user = sessionUser(req);
+   if (!user) return uniformResponse(res, 401, { success: false, error: 'ورود لازم است.' });
+   if (!Array.isArray(store.tasks)) store.tasks = [];
+   const requestedUsername = typeof req.query.username === 'string' ? req.query.username : undefined;
+   let data = store.tasks;
+   if (!isTaskManager(user)) {
+     data = data.filter((task) => task.assigneeUsername === user.username);
+   } else if (requestedUsername) {
+     data = data.filter((task) => task.assigneeUsername === requestedUsername);
+   }
+   if (req.query.status && typeof req.query.status === 'string') {
+     data = data.filter((task) => task.status === req.query.status);
+   }
+   if (req.query.department && typeof req.query.department === 'string') {
+     data = data.filter((task) => task.department === req.query.department);
+   }
+   if (req.query.priority && typeof req.query.priority === 'string') {
+     data = data.filter((task) => task.priority === req.query.priority);
+   }
+   return uniformResponse(res, 200, { success: true, count: data.length, data });
+ });
+ 
+ app.post('/api/tasks', (req: Request, res: Response) => {
+   const user = sessionUser(req);
+   if (!user || !isTaskManager(user)) return uniformResponse(res, 403, { success: false, error: 'فقط مدیر مجاز به ایجاد تیکت و واگذاری وظیفه است.' });
+   const task = req.body;
+   if (!task?.title || !task?.assigneeUsername) {
+     return uniformResponse(res, 400, { success: false, error: 'عنوان و پرسنل مسئول الزامی است.' });
+   }
+   const assignee = configuredAuthUsers().find((candidate) => candidate.username === String(task.assigneeUsername));
+   if (!assignee) {
+     return uniformResponse(res, 400, { success: false, error: 'پرسنل مسئول در فهرست حساب‌های فعال کلینیک وجود ندارد.' });
+   }
+   const saved = {
+     id: task.id || `task-${Date.now()}`,
+     title: String(task.title).trim(),
+     details: task.details || '',
+     department: task.department || 'clinical',
+     assigneeUsername: assignee.username,
+     assigneeName: assignee.name,
+     assigneeRole: assignee.role,
+     priority: task.priority || 'medium',
+     status: 'open',
+     dueDate: task.dueDate || '',
+     createdBy: user.username,
+     createdByName: user.name,
+     createdAt: new Date().toISOString(),
+     updatedAt: new Date().toISOString(),
+     updates: [],
+   };
+   if (!Array.isArray(store.tasks)) store.tasks = [];
+   store.tasks.unshift(saved);
+ 
+   // Send internal notification to assignee
+   if (!Array.isArray(store.notifications)) store.notifications = [];
+   store.notifications.unshift({
+     id: `notif-${Date.now()}`,
+     title: 'واگذاری ماموریت جدید',
+     message: `تیکت "${saved.title}" توسط ${user.name} به شما ارجاع گردید.`,
+     type: 'task',
+     targetRole: assignee.role,
+     createdAt: new Date().toISOString(),
+     isRead: false,
+     requiresAction: true,
+     actionStatus: 'pending',
+     relatedEntityId: saved.id,
+   });
+ 
+   saveStore();
+   broadcastWsEvent({ type: 'task:created', task: saved });
+   return uniformResponse(res, 201, { success: true, data: saved });
+ });
+ 
+ app.patch('/api/tasks/:id', (req: Request, res: Response) => {
+   const user = sessionUser(req);
+   if (!user) return uniformResponse(res, 401, { success: false, error: 'ورود لازم است.' });
+   if (!Array.isArray(store.tasks)) store.tasks = [];
+   const task = store.tasks.find((item) => item.id === req.params.id);
+   if (!task) return uniformResponse(res, 404, { success: false, error: 'تیکت پیدا نشد.' });
+   if (!isTaskManager(user) && task.assigneeUsername !== user.username) {
+     return uniformResponse(res, 403, { success: false, error: 'شما فقط به تیکت‌های خود دسترسی دارید.' });
+   }
+   const nextStatus = req.body?.status;
+   if (nextStatus && !['open', 'in_progress', 'completed'].includes(nextStatus)) {
+     return uniformResponse(res, 400, { success: false, error: 'وضعیت تیکت نامعتبر است.' });
+   }
+   const updatedAt = new Date().toISOString();
+   Object.assign(task, req.body || {}, { updatedAt });
+   if (!Array.isArray(task.updates)) task.updates = [];
+   if (nextStatus || req.body?.note) {
+     task.updates.push({
+       status: nextStatus || task.status,
+       at: updatedAt,
+       by: user.username,
+       byName: user.name,
+       note: req.body?.note || undefined,
+     });
+   }
+   saveStore();
+   broadcastWsEvent({ type: 'task:updated', task });
+   return uniformResponse(res, 200, { success: true, data: task });
+ });
+ 
+ app.delete('/api/tasks/:id', (req: Request, res: Response) => {
+   const user = sessionUser(req);
+   if (!user || !isTaskManager(user)) return uniformResponse(res, 403, { success: false, error: 'فقط مدیر مجاز به حذف تیکت است.' });
+   if (!Array.isArray(store.tasks)) store.tasks = [];
+   const idx = store.tasks.findIndex((t) => t.id === req.params.id);
+   if (idx === -1) return uniformResponse(res, 404, { success: false, error: 'تیکت یافت نشد.' });
+   store.tasks.splice(idx, 1);
+   saveStore();
+   broadcastWsEvent({ type: 'task:deleted', taskId: req.params.id });
+   return uniformResponse(res, 200, { success: true, message: 'تیکت با موفقیت حذف شد.' });
+ });

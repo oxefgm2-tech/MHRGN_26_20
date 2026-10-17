@@ -1,0 +1,12 @@
+{
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "typescript": "^5.8.2"
+  },
+  "requires": [
+    "P1.6-radiography-dicom"
+  ],
+  "dicomBackend": "Orthanc PACS (v1.12+) running as DICOM Store SCP",
+  "notes": "Complements P1.6 Samba/HTA file bridge by adding DICOM C-STORE reception. Must be deployed after P1.6."
+}

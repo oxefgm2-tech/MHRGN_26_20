@@ -1,0 +1,21 @@
+--- server.ts.orig
++++ server.ts
+@@ -5300,6 +5300,50 @@
++// Legacy SQL Server Schema Inspection (Read-Only Dry-Run)
++app.post('/api/legacy/sql/inspect', (req: Request, res: Response) => {
++  const { instanceId, databaseName, tableNames } = req.body;
++  // Returns table schema metadata without performing any mutations
++  return res.json({
++    success: true,
++    mode: 'dry_run_readonly',
++    databaseName: databaseName || 'dam2000',
++    ...
++  });
++});
++
++// Legacy SQL Table Extraction (Dry-Run / Migration Preview)
++app.post('/api/legacy/sql/extract', (req: Request, res: Response) => {
++  const { instanceId, databaseName, tables } = req.body;
++  // Provides normalized JSON preview for dry-run validation
++  ...
++});

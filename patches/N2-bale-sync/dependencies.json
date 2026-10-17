@@ -1,0 +1,10 @@
+{
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  },
+  "requires": [
+    "P1.1-bale-bot"
+  ],
+  "notes": "Pure TypeScript data transformer service without external runtime dependencies. Requires P1.1 (bale-bot) config directory and BALE_BOT_TOKEN."
+}

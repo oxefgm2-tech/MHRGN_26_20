@@ -1,0 +1,90 @@
+--- server.ts.orig
++++ server.ts
+@@ -14,6 +14,14 @@
++import {
++  loadSmsConfig,
++  saveSmsConfig,
++  getIppanelCredit,
++  sendPatternSms,
++  sendDirectSms,
++  getOutboxLogs,
++} from './src/services/smsService';
++
++// SMS IPPanel Endpoints
++app.get('/api/sms/status', async (req: Request, res: Response) => {
++  const config = loadSmsConfig();
++  const creditRes = await getIppanelCredit();
++  const maskedKey = config.apiKey
++    ? `${config.apiKey.slice(0, 4)}...${config.apiKey.slice(-4)}`
++    : 'تنظیم‌نشده';
++  return uniformResponse(res, 200, {
++    success: true,
++    data: {
++      isActive: config.isActive,
++      maskedKey,
++      senderNumber: config.senderNumber,
++      adminMobile: config.adminMobile,
++      credit: creditRes.credit || 0,
++      currency: creditRes.currency || 'ریال',
++      creditStatus: creditRes.success ? 'connected' : 'offline_mode',
++      defaultPatternCodes: config.defaultPatternCodes,
++    },
++  });
++});
++
++app.post('/api/sms/config', (req: Request, res: Response) => {
++  const user = sessionUser(req);
++  if (!user || !isUserManager(user)) {
++    return uniformResponse(res, 403, { success: false, error: 'تنها مدیر و کارشناس IT مجاز به تغییر تنظیمات پیامک هستند.' });
++  }
++  const { apiKey, senderNumber, adminMobile, defaultPatternCodes } = req.body || {};
++  const updated = saveSmsConfig({
++    ...(apiKey ? { apiKey } : {}),
++    ...(senderNumber ? { senderNumber } : {}),
++    ...(adminMobile ? { adminMobile } : {}),
++    ...(defaultPatternCodes ? { defaultPatternCodes } : {}),
++  });
++  return uniformResponse(res, 200, {
++    success: true,
++    message: 'تنظیمات سامانه پیامک IPPanel با موفقیت ذخیره شد.',
++    data: {
++      isActive: updated.isActive,
++      senderNumber: updated.senderNumber,
++      adminMobile: updated.adminMobile,
++    },
++  });
++});
++
++app.get('/api/sms/credit', async (_req: Request, res: Response) => {
++  const result = await getIppanelCredit();
++  return uniformResponse(res, 200, result);
++});
++
++app.post('/api/sms/send-pattern', async (req: Request, res: Response) => {
++  const user = sessionUser(req);
++  if (!user) return uniformResponse(res, 401, { success: false, error: 'ورود به سیستم الزامی است.' });
++  const { patternCode, recipient, values, from } = req.body || {};
++  if (!patternCode || !recipient || !values) {
++    return uniformResponse(res, 400, { success: false, error: 'کد پترن، شماره گیرنده و مقادیر متغیرها الزامی است.' });
++  }
++  const result = await sendPatternSms({ patternCode, recipient, values, from });
++  return uniformResponse(res, result.success ? 200 : 500, result);
++});
++
++app.post('/api/sms/send-quick', async (req: Request, res: Response) => {
++  const user = sessionUser(req);
++  if (!user) return uniformResponse(res, 401, { success: false, error: 'ورود به سیستم الزامی است.' });
++  const { recipients, message, from } = req.body || {};
++  if (!recipients || !Array.isArray(recipients) || recipients.length === 0 || !message) {
++    return uniformResponse(res, 400, { success: false, error: 'لیست گیرندگان و متن پیام الزامی است.' });
++  }
++  const result = await sendDirectSms({ recipients, message, from });
++  return uniformResponse(res, result.success ? 200 : 500, result);
++});
++
++app.get('/api/sms/reports', async (req: Request, res: Response) => {
++  const page = parseInt(String(req.query.page || '1'), 10);
++  const perPage = parseInt(String(req.query.per_page || '20'), 10);
++  const result = await getOutboxLogs(page, perPage);
++  return uniformResponse(res, 200, result);
++});

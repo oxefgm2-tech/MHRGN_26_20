@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "ws": "^8.21.3",
+    "lucide-react": "^0.546.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1"
+  },
+  "notes": "WebSocket real-time bidirectional messaging layer mounted on /ws path."
+}

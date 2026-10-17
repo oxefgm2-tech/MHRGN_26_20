@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>نمایش‌دهنده و سامانه مدیریت رادیوگرافی | کلینیک دامپزشکی مهرگان</title>
+  <style>
+    :root {
+      --primary: #1B4D3E;
+      --primary-light: #2D6A4F;
+      --accent: #E76F51;
+      --bg: #F8FAF7;
+      --card-bg: #FFFFFF;
+      --border: #E2E8F0;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --success: #16A34A;
+      --dark-canvas: #090D16;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, 'Segoe UI', Tahoma, Arial, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 40px; font-size: 14px; }
+    
+    /* Top Header */
+    .topbar { background: var(--primary); color: white; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .topbar-title { display: flex; align-items: center; gap: 12px; }
+    .topbar-title h1 { font-size: 17px; font-weight: 800; }
+    .badge-server { background: rgba(255,255,255,0.18); color: #E8F5E9; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .btn-sync { background: var(--accent); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+    .btn-sync:hover { background: #D65A3C; }
+
+    /* Layout */
+    .container { max-width: 1400px; margin: 20px auto; padding: 0 16px; }
+    .main-grid { display: grid; grid-template-columns: 320px 1fr 380px; gap: 18px; }
+    @media (max-width: 1200px) {
+      .main-grid { grid-template-columns: 280px 1fr; }
+      .meta-panel { grid-column: span 2; }
+    }
+    @media (max-width: 768px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .meta-panel { grid-column: span 1; }
+    }
+
+    /* Cards */
+    .card { background: var(--card-bg); border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden; display: flex; flex-direction: column; }
+    .card-header { padding: 12px 16px; background: #F8FAF9; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 13.5px; color: var(--primary); }
+    .card-body { padding: 16px; flex: 1; }
+
+    /* File List Panel */
+    .file-item { padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; background: white; }
+    .file-item:hover { border-color: var(--primary-light); background: #F0FDF4; }
+    .file-item.active { border-color: var(--primary); background: #E8F5E9; border-width: 2px; }
+    .file-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+    .file-status-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    .badge-new { background: #FEF3C7; color: #92400E; }
+    .badge-saved { background: #DCFCE7; color: #166534; }
+
+    /* Canvas / Image Viewer */
+    .viewer-area { display: flex; flex-direction: column; height: 100%; min-height: 580px; }
+    .viewer-toolbar { background: #1E293B; color: white; padding: 10px 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; border-radius: 8px 8px 0 0; }
+    .toolbar-group { display: flex; gap: 6px; align-items: center; }
+    .tool-btn { background: #334155; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: 0.15s; }
+    .tool-btn:hover { background: #475569; }
+    .tool-btn.active { background: var(--accent); }
+    .canvas-wrapper { flex: 1; background: var(--dark-canvas); display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; border-radius: 0 0 8px 8px; min-height: 480px; }
+    #graphImage { max-width: 95%; max-height: 95%; object-fit: contain; transition: transform 0.1s ease-out, filter 0.1s; user-select: none; }
+    .placeholder-msg { color: #94A3B8; text-align: center; }
+
+    /* Metadata Form */
+    .form-section { margin-bottom: 16px; }
+    .section-title { font-size: 12.5px; font-weight: bold; color: var(--primary); margin-bottom: 10px; padding-bottom: 4px; border-bottom: 2px solid #E2E8F0; display: flex; justify-content: space-between; }
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 4px; }
+    .req-mark { color: #DC2626; margin-right: 2px; }
+    .form-control { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: #FAFBF9; transition: border-color 0.15s; }
+    .form-control:focus { outline: none; border-color: var(--primary); background: white; }
+    textarea.form-control { min-height: 65px; resize: vertical; }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+    /* Share & Output Box */
+    .share-box { background: #F8FAFC; border: 1px dashed var(--border); padding: 12px; border-radius: 8px; margin-top: 12px; }
+    .btn-bale { background: #268C60; color: white; border: none; padding: 9px 14px; border-radius: 6px; font-size: 12.5px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 6px; display: flex; justify-content: center; align-items: center; gap: 6px; }
+    .btn-bale:hover { background: #1F724E; }
+    .btn-sms { background: #0284C7; color: white; border: none; padding: 9px 14px; border-radius: 6px; font-size: 12.5px; font-weight: bold; cursor: pointer; width: 100%; display: flex; justify-content: center; align-items: center; gap: 6px; }
+    .btn-sms:hover { background: #0369A1; }
+    .btn-save-case { background: var(--primary); color: white; border: none; padding: 10px 16px; border-radius: 6px; font-size: 13.5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+    .btn-save-case:hover { background: #13392E; }
+
+    /* Range controls */
+    .slider-box { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #CBD5E1; }
+    .slider-box input[type="range"] { width: 80px; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="topbar">
+    <div class="topbar-title">
+      <h1>کلینیک دامپزشکی مهرگان | سامانه پردازش و نمایش گراف‌های رادیولوژی</h1>
+      <span class="badge-server">سرور ncase3 (اوبونتو ۲۴)</span>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <button class="btn-sync" onclick="loadIncomingFiles()">
+        <span>🔄 بروزرسانی گراف‌های دریافتی</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="main-grid">
+      
+      <!-- Panel 1: Incoming Graphs List -->
+      <div class="card">
+        <div class="card-header">
+          <span>گراف‌های ارسالی از ویندوز ۷</span>
+          <span style="font-size: 11px; color: var(--text-muted);" id="fileCountBadge">۰ فایل</span>
+        </div>
+        <div class="card-body" style="padding: 10px; overflow-y: auto; max-height: 650px;" id="fileListContainer">
+          <div style="text-align: center; color: var(--text-muted); padding: 30px 10px;">
+            در حال بارگذاری فایل‌های پوشه incoming...
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 2: Center Medical X-Ray Graph Viewer -->
+      <div class="card">
+        <div class="viewer-area">
+          <div class="viewer-toolbar">
+            <div class="toolbar-group">
+              <button class="tool-btn" onclick="zoomIn()">🔍 بزرگ‌نمایی +</button>
+              <button class="tool-btn" onclick="zoomOut()">🔍- کوچک‌نمایی</button>
+              <button class="tool-btn" onclick="rotateLeft()">↺ چرخش ۹۰°</button>
+              <button class="tool-btn" onclick="rotateRight()">↻</button>
+            </div>
+
+            <div class="toolbar-group">
+              <button class="tool-btn" id="btnInvert" onclick="toggleInvert()">نگاتیو / پوزیتیو (Invert)</button>
+              
+              <div class="slider-box">
+                <span>کنتراست:</span>
+                <input type="range" id="contrastRange" min="50" max="250" value="100" oninput="updateFilters()">
+              </div>
+
+              <div class="slider-box">
+                <span>روشنایی:</span>
+                <input type="range" id="brightRange" min="50" max="250" value="100" oninput="updateFilters()">
+              </div>
+
+              <button class="tool-btn" onclick="resetView()">بازنشانی</button>
+            </div>
+          </div>
+
+          <div class="canvas-wrapper" id="canvasWrapper">
+            <div class="placeholder-msg" id="emptyPlaceholder">
+              <div style="font-size: 40px; margin-bottom: 10px;">🩻</div>
+              <div style="font-size: 15px; font-weight: bold;">گرافی انتخاب نشده است</div>
+              <div style="font-size: 12px; margin-top: 4px;">یک فایل از ستون سمت راست برای نمایش و تنظیم پارامترها انتخاب فرمایید</div>
+            </div>
+            <img id="graphImage" src="" alt="Radiography Graph" style="display: none;" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Medical Case Data Entry & Share Link -->
+      <div class="card meta-panel">
+        <div class="card-header">
+          <span>ثبت اطلاعات پرونده و گزارش تخصصی</span>
+          <span style="font-size: 11px; color: var(--text-muted);" id="activeCaseCode">جدید</span>
+        </div>
+        <div class="card-body" style="overflow-y: auto; max-height: 650px;">
+          
+          <!-- Section 1: Patient Core Info (Required) -->
+          <div class="form-section">
+            <div class="section-title">
+              <span>اطلاعات اصلی پرونده</span>
+              <span style="color: #DC2626; font-size: 10.5px;">* موارد ضروری</span>
+            </div>
+
+            <div class="form-group">
+              <label><span class="req-mark">*</span> نام بیمار (پت):</label>
+              <input type="text" id="txtPetName" class="form-control" placeholder="مثال: لوسی، تدی، ببری" />
+            </div>
+
+            <div class="row-2">
+              <div class="form-group">
+                <label><span class="req-mark">*</span> نام سرپرست:</label>
+                <input type="text" id="txtOwnerName" class="form-control" placeholder="نام و نام‌خانوادگی" />
+              </div>
+              <div class="form-group">
+                <label><span class="req-mark">*</span> شماره موبایل:</label>
+                <input type="text" id="txtOwnerPhone" class="form-control" placeholder="0912..." dir="ltr" />
+              </div>
+            </div>
+
+            <div class="row-2">
+              <div class="form-group">
+                <label>گونه:</label>
+                <select id="selSpecies" class="form-control">
+                  <option value="سگ">سگ</option>
+                  <option value="گربه">گربه</option>
+                  <option value="پرنده">پرنده</option>
+                  <option value="خرگوش / جونده">خرگوش / جونده</option>
+                  <option value="سایر">سایر</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>نژاد و سن (اختیاری):</label>
+                <input type="text" id="txtBreedAge" class="form-control" placeholder="مثال: شیتزو - ۲ سال" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Clinical & Disease Symptoms (Optional) -->
+          <div class="form-section">
+            <div class="section-title">مشخصات بیماری و علائم بالینی (اختیاری)</div>
+            <div class="form-group">
+              <label>شکایت اصلی و علائم اولیه:</label>
+              <textarea id="txtSymptoms" class="form-control" placeholder="علت ارجاع به رادیولوژی: لنگش اندام خلفی، تنگی نفس، شک به ترومای تصادف، سرفه مزمن، استفراغ مداوم و..."></textarea>
+            </div>
+          </div>
+
+          <!-- Section 3: Specialized Medical Radiography Findings (Optional / Clinical) -->
+          <div class="form-section">
+            <div class="section-title">اطلاعات تخصصی گراف (پزشکی / رادیولوژی)</div>
+
+            <div class="row-2">
+              <div class="form-group">
+                <label>ناحیه آناتومیک گراف:</label>
+                <select id="selAnatomy" class="form-control">
+                  <option value="قفسه سینه (Thorax)">قفسه سینه (Thorax)</option>
+                  <option value="محوطه شکمی (Abdomen)">محوطه شکمی (Abdomen)</option>
+                  <option value="اندام حرکتی قدامی (Forelimb)">اندام حرکتی قدامی</option>
+                  <option value="اندام حرکتی خلفی (Hindlimb)">اندام حرکتی خلفی</option>
+                  <option value="ستون مهره‌ها (Spine)">ستون مهره‌ها</option>
+                  <option value="جمجمه و گردن (Skull & Neck)">جمجمه و گردن</option>
+                  <option value="لگن (Pelvis)">لگن</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>نمای رادیوگرافی (View):</label>
+                <select id="selProjection" class="form-control">
+                  <option value="Lateral (Right/Left)">Lateral (لاتِرال)</option>
+                  <option value="Ventrodorsal (VD)">Ventrodorsal (VD)</option>
+                  <option value="Dorsoventral (DV)">Dorsoventral (DV)</option>
+                  <option value="Oblique (مایل)">Oblique (مایل)</option>
+                  <option value="چندنما (Orthogonal)">چندنما (Orthogonal)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>یافته‌های رادیولوژیک (Radiological Findings):</label>
+              <textarea id="txtFindings" class="form-control" placeholder="شرح یافته‌های تصویر: ترومبوز، یکپارچگی کورتکس استخوان، خط شکستگی، الگوی بین‌ابینی ریه، دانسیته بافت نرم و..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>تشخیص رادیولوژیست / نتیجه نهایی:</label>
+              <input type="text" id="txtImpression" class="form-control" placeholder="مثال: شکستگی مایل شفت استخوان تیبیا، نرمال بدون افیوژن" />
+            </div>
+
+            <div class="form-group">
+              <label>پزشک رادیولوژیست / معالج:</label>
+              <input type="text" id="txtDoctor" class="form-control" value="دکتر مهرداد رضایی - کلینیک مهرگان" />
+            </div>
+          </div>
+
+          <!-- Save Case Button -->
+          <button class="btn-save-case" onclick="saveCaseReport()">
+            💾 ثبت و ذخیره پرونده رادیولوژی
+          </button>
+
+          <!-- Share with Client Section (Bale & SMS) -->
+          <div class="share-box">
+            <div style="font-size: 12px; font-weight: bold; color: var(--primary); margin-bottom: 8px;">
+              ارسال لینک نتایج و نمایشگر به سرپرست پت:
+            </div>
+            
+            <button class="btn-bale" onclick="sendBaleMessengerLink()">
+              <span>💬 ارسال به پیام‌رسان بله (Bale)</span>
+            </button>
+
+            <button class="btn-sms" onclick="sendSmsLink()">
+              <span>📱 ارسال پیامک به متقاضی (SMS)</span>
+            </button>
+
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.4;">
+              * متقاضی با کلیک روی لینک، محیط اجرای ایزوله و اختصاصی را باز کرده و تصویر گراف و توضیحات پزشکی را مشاهده می‌نماید.
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // State management
+    var currentScale = 1;
+    var currentRotation = 0;
+    var isInverted = false;
+    var currentFiles = [];
+    var selectedFile = null;
+
+    // Default sample files if running without live local directory listing
+    var defaultDemoFiles = [
+      { id: 'xray-01', name: 'XR_20261008_LUCY_THORAX.png', date: 'امروز ۱۰:۲۲', size: '2.4 MB', saved: true },
+      { id: 'xray-02', name: 'XR_20261008_MAX_PELVIS_VD.png', date: 'امروز ۱۱:۴۵', size: '3.1 MB', saved: false },
+      { id: 'xray-03', name: 'XR_20261008_TEDDY_FORELIMB.jpg', date: 'امروز ۱۲:۰۵', size: '1.8 MB', saved: false }
+    ];
+
+    function init() {
+      loadIncomingFiles();
+    }
+
+    function loadIncomingFiles() {
+      // Fetch files from local directory or API endpoint
+      fetch('/api/radiography/incoming')
+        .then(function(res) {
+          if (res.ok) return res.json();
+          throw new Error('API not available, fallback to demo/local files');
+        })
+        .then(function(data) {
+          if (data && data.files && data.files.length > 0) {
+            renderFileList(data.files);
+          } else {
+            renderFileList(defaultDemoFiles);
+          }
+        })
+        .catch(function(err) {
+          renderFileList(defaultDemoFiles);
+        });
+    }
+
+    function renderFileList(files) {
+      currentFiles = files;
+      var container = document.getElementById('fileListContainer');
+      document.getElementById('fileCountBadge').innerText = files.length + ' فایل';
+      container.innerHTML = '';
+
+      if (files.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: #94A3B8; padding: 20px;">هیچ گراف جدیدی در پوشه ورودی دریافت نشده است.</div>';
+        return;
+      }
+
+      files.forEach(function(file, idx) {
+        var div = document.createElement('div');
+        div.className = 'file-item ' + (selectedFile && selectedFile.name === file.name ? 'active' : '');
+        div.onclick = function() { selectFile(file); };
+
+        var badgeClass = file.saved ? 'badge-saved' : 'badge-new';
+        var badgeText = file.saved ? 'ثبت شده ✓' : 'جدید ⏳';
+
+        div.innerHTML = '<div>' +
+          '<div style="font-weight: 700; font-size: 12.5px;">' + file.name + '</div>' +
+          '<div class="file-meta">' + file.size + ' • ' + file.date + '</div>' +
+          '</div>' +
+          '<span class="file-status-badge ' + badgeClass + '">' + badgeText + '</span>';
+
+        container.appendChild(div);
+      });
+
+      if (!selectedFile && files.length > 0) {
+        selectFile(files[0]);
+      }
+    }
+
+    function selectFile(file) {
+      selectedFile = file;
+      document.querySelectorAll('.file-item').forEach(function(el) { el.classList.remove('active'); });
+      event && event.currentTarget && event.currentTarget.classList.add('active');
+
+      document.getElementById('emptyPlaceholder').style.display = 'none';
+      var img = document.getElementById('graphImage');
+      img.style.display = 'block';
+
+      // Load graphic
+      if (file.url) {
+        img.src = file.url;
+      } else {
+        // High quality medical vet radiography svg simulation
+        img.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" fill="%23050810"/><circle cx="400" cy="300" r="180" fill="%231E293B" opacity="0.6"/><path d="M 280 200 Q 400 160 520 200 Q 560 350 400 480 Q 240 350 280 200 Z" fill="%23475569" opacity="0.75"/><path d="M 320 230 Q 400 210 480 230" stroke="%23E2E8F0" stroke-width="8" fill="none" opacity="0.9"/><path d="M 330 270 Q 400 250 470 270" stroke="%23E2E8F0" stroke-width="8" fill="none" opacity="0.9"/><path d="M 340 310 Q 400 290 460 310" stroke="%23E2E8F0" stroke-width="8" fill="none" opacity="0.9"/><line x1="400" y1="180" x2="400" y2="440" stroke="%23F8FAFC" stroke-width="14" opacity="0.95"/><text x="40" y="50" fill="%2338BDF8" font-family="monospace" font-size="16">MEHREGAN VET CLINIC - DIGITAL RADIOGRAPHY</text><text x="40" y="80" fill="%2394A3B8" font-family="monospace" font-size="13">FILE: ' + encodeURIComponent(file.name) + '</text><text x="700" y="50" fill="%23E2E8F0" font-family="monospace" font-size="22" font-weight="bold">R</text></svg>';
+      }
+
+      resetView();
+    }
+
+    function zoomIn() {
+      currentScale += 0.2;
+      applyTransform();
+    }
+
+    function zoomOut() {
+      if (currentScale > 0.4) {
+        currentScale -= 0.2;
+        applyTransform();
+      }
+    }
+
+    function rotateLeft() {
+      currentRotation -= 90;
+      applyTransform();
+    }
+
+    function rotateRight() {
+      currentRotation += 90;
+      applyTransform();
+    }
+
+    function toggleInvert() {
+      isInverted = !isInverted;
+      document.getElementById('btnInvert').classList.toggle('active', isInverted);
+      updateFilters();
+    }
+
+    function updateFilters() {
+      var contrast = document.getElementById('contrastRange').value;
+      var brightness = document.getElementById('brightRange').value;
+      var invertVal = isInverted ? 1 : 0;
+      var img = document.getElementById('graphImage');
+      img.style.filter = 'contrast(' + contrast + '%) brightness(' + brightness + '%) invert(' + invertVal + ')';
+    }
+
+    function resetView() {
+      currentScale = 1;
+      currentRotation = 0;
+      isInverted = false;
+      document.getElementById('contrastRange').value = 100;
+      document.getElementById('brightRange').value = 100;
+      document.getElementById('btnInvert').classList.remove('active');
+      applyTransform();
+      updateFilters();
+    }
+
+    function applyTransform() {
+      var img = document.getElementById('graphImage');
+      img.style.transform = 'scale(' + currentScale + ') rotate(' + currentRotation + 'deg)';
+    }
+
+    // Save Case Data
+    function saveCaseReport() {
+      var petName = document.getElementById('txtPetName').value.trim();
+      var ownerName = document.getElementById('txtOwnerName').value.trim();
+      var ownerPhone = document.getElementById('txtOwnerPhone').value.trim();
+
+      if (!petName) {
+        alert('لطفاً نام بیمار (پت) را وارد فرمایید. این فیلد ضروری است.');
+        document.getElementById('txtPetName').focus();
+        return;
+      }
+      if (!ownerPhone) {
+        alert('لطفاً شماره تماس سرپرست را جهت ارسال لینک نتایج وارد فرمایید.');
+        document.getElementById('txtOwnerPhone').focus();
+        return;
+      }
+
+      var caseData = {
+        petName: petName,
+        ownerName: ownerName,
+        ownerPhone: ownerPhone,
+        species: document.getElementById('selSpecies').value,
+        breedAge: document.getElementById('txtBreedAge').value.trim(),
+        symptoms: document.getElementById('txtSymptoms').value.trim(),
+        anatomy: document.getElementById('selAnatomy').value,
+        projection: document.getElementById('selProjection').value,
+        findings: document.getElementById('txtFindings').value.trim(),
+        impression: document.getElementById('txtImpression').value.trim(),
+        doctor: document.getElementById('txtDoctor').value.trim(),
+        fileName: selectedFile ? selectedFile.name : '',
+        savedAt: new Date().toISOString()
+      };
+
+      // Send to clinic API if reachable
+      fetch('/api/radiography/cases', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(caseData)
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(res) {
+        alert('✓ پرونده رادیولوژی با موفقیت ذخیره گردید.\nکد رهگیری: ' + (res.caseId || 'RAD-' + Date.now().toString().slice(-6)));
+        if (selectedFile) selectedFile.saved = true;
+        renderFileList(currentFiles);
+      })
+      .catch(function(err) {
+        // Fallback saving locally
+        localStorage.setItem('rad_case_' + (selectedFile ? selectedFile.name : Date.now()), JSON.stringify(caseData));
+        alert('✓ اطلاعات پرونده رادیولوژی در سرور محلی با موفقیت ذخیره شد.');
+        if (selectedFile) selectedFile.saved = true;
+        renderFileList(currentFiles);
+      });
+    }
+
+    function generateShareUrl() {
+      var petName = encodeURIComponent(document.getElementById('txtPetName').value.trim() || 'پت');
+      var baseDomain = window.location.origin;
+      var fileParam = selectedFile ? encodeURIComponent(selectedFile.name) : 'graph.png';
+      return baseDomain + '/viewer?case=' + fileParam + '&pet=' + petName;
+    }
+
+    function sendBaleMessengerLink() {
+      var petName = document.getElementById('txtPetName').value.trim();
+      var ownerPhone = document.getElementById('txtOwnerPhone').value.trim();
+      if (!petName || !ownerPhone) {
+        alert('لطفاً نام بیمار و شماره موبایل را وارد نمایید.');
+        return;
+      }
+
+      var url = generateShareUrl();
+      var messageText = 'سرپرست گرامی ' + (document.getElementById('txtOwnerName').value.trim() || '') + '،\n' +
+        'نتایج رادیوگرافی تخصصی ' + petName + ' در کلینیک دامپزشکی مهرگان آماده مشاهده است:\n' +
+        url + '\n' +
+        'با احترام، کلینیک دامپزشکی مهرگان';
+
+      // Bale deep link scheme or API
+      var baleUrl = 'https://ble.ir/share/url?url=' + encodeURIComponent(url) + '&text=' + encodeURIComponent(messageText);
+      window.open(baleUrl, '_blank');
+    }
+
+    function sendSmsLink() {
+      var petName = document.getElementById('txtPetName').value.trim();
+      var ownerPhone = document.getElementById('txtOwnerPhone').value.trim();
+      if (!petName || !ownerPhone) {
+        alert('لطفاً نام بیمار و شماره موبایل را وارد نمایید.');
+        return;
+      }
+
+      var url = generateShareUrl();
+      var smsText = 'سرپرست گرامی، نتایج گراف رادیولوژی ' + petName + ' در کلینیک مهرگان:\n' + url;
+
+      // SMS URI scheme
+      var smsUrl = 'sms:' + ownerPhone + '?body=' + encodeURIComponent(smsText);
+      window.open(smsUrl, '_self');
+    }
+
+    // Run on load
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

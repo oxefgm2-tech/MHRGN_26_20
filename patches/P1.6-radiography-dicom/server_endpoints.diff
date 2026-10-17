@@ -1,0 +1,33 @@
+--- server.ts.orig
++++ server.ts
+@@ -4058,6 +4058,75 @@
++// ==============================================================================
++// Radiography Isolated Pipe & Imaging Endpoints (Windows 7 -> ncase3 -> Cloud VPS)
++// ==============================================================================
++const RADIOGRAPHY_INCOMING_DIR = path.join(process.cwd(), 'data', 'radiography', 'incoming');
++const RADIOGRAPHY_CASES_DIR = path.join(process.cwd(), 'data', 'radiography', 'cases');
++
++// Get incoming graph files transferred from Windows 7
++app.get('/api/radiography/incoming', (_req: Request, res: Response) => {
++  ...
++});
++
++// Save radiography case with patient metadata and generate Bale & SMS share link
++app.post('/api/radiography/cases', (req: Request, res: Response) => {
++  ...
++});
++
++// Get list of saved cases
++app.get('/api/radiography/cases', (_req: Request, res: Response) => {
++  ...
++});
++
++// View individual graph metadata & image
++app.get('/api/radiography/cases/:id', (req: Request, res: Response) => {
++  ...
++});
++
++// Public viewer link for pet owners via Bale / SMS
++app.get('/radiography/view/:id', (req: Request, res: Response) => {
++  ...
++});
