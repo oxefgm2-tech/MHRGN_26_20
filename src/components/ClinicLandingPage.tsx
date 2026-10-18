@@ -33,14 +33,18 @@ import { apiClient } from '../services/apiClient';
 import { CLINIC_LOCATION } from '../constants/clinicLocation';
 
 interface ClinicLandingPageProps {
-  onLoginSuccess: (user: any, token: string) => void;
+  onLoginSuccess?: (user: any, token: string) => void;
   onOpenInviteModal?: () => void;
   activeClinicProfile?: ClinicProfileConfig;
+  isInternalMode?: boolean;
+  onBackToDashboard?: () => void;
 }
 
 export const ClinicLandingPage: React.FC<ClinicLandingPageProps> = ({
   onLoginSuccess,
   activeClinicProfile,
+  isInternalMode = false,
+  onBackToDashboard,
 }) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'roadmap' | 'onboarding' | 'multi_clinic'>('overview');
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -175,14 +179,18 @@ export const ClinicLandingPage: React.FC<ClinicLandingPageProps> = ({
             </span>
             <span className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5 text-emerald-400" />
-              <span>اورژانس شبانه‌روزی</span>
+              <span>پشتیبانی کلینیک</span>
             </span>
-            <button
-              onClick={() => setShowLoginModal(true)}
-              className="text-emerald-300 hover:text-white font-bold transition-colors underline decoration-emerald-500/40 underline-offset-4"
-            >
-              ورود کارشناس IT
-            </button>
+            {isInternalMode ? (
+              <span className="text-emerald-300 font-bold">بخش مستندات و نقشه راه کلینیک</span>
+            ) : (
+              <button
+                onClick={() => setShowLoginModal(true)}
+                className="text-emerald-300 hover:text-white font-bold transition-colors underline decoration-emerald-500/40 underline-offset-4"
+              >
+                ورود کارشناس IT
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -204,20 +212,32 @@ export const ClinicLandingPage: React.FC<ClinicLandingPageProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowInviteAcceptModal(true)}
-              className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#D9DED3] hover:border-emerald-600 hover:bg-emerald-50/50 text-[#2D3A27] text-xs font-bold transition-all"
-            >
-              <UserCheck className="w-4 h-4 text-emerald-700" />
-              <span>پذیرش دعوت‌نامه و تکمیل نقش</span>
-            </button>
-            <button
-              onClick={() => setShowLoginModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#283824] hover:bg-[#1C2819] text-white text-xs font-bold transition-all shadow-md shadow-emerald-900/15 cursor-pointer"
-            >
-              <Lock className="w-4 h-4 text-emerald-300" />
-              <span>ورود کارشناس IT</span>
-            </button>
+            {isInternalMode && onBackToDashboard ? (
+              <button
+                onClick={onBackToDashboard}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-all shadow-md shadow-emerald-950/20 cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4 text-emerald-200" />
+                <span>بازگشت به داشبورد مدیریت کلینیک</span>
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => setShowInviteAcceptModal(true)}
+                  className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#D9DED3] hover:border-emerald-600 hover:bg-emerald-50/50 text-[#2D3A27] text-xs font-bold transition-all"
+                >
+                  <UserCheck className="w-4 h-4 text-emerald-700" />
+                  <span>پذیرش دعوت‌نامه و تکمیل نقش</span>
+                </button>
+                <button
+                  onClick={() => setShowLoginModal(true)}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#283824] hover:bg-[#1C2819] text-white text-xs font-bold transition-all shadow-md shadow-emerald-900/15 cursor-pointer"
+                >
+                  <Lock className="w-4 h-4 text-emerald-300" />
+                  <span>ورود کارشناس IT</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -258,13 +278,23 @@ export const ClinicLandingPage: React.FC<ClinicLandingPageProps> = ({
 
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-3 pt-2">
-                <button
-                  onClick={() => setShowLoginModal(true)}
-                  className="px-6 py-3.5 rounded-2xl bg-[#283824] hover:bg-[#1E291B] text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-emerald-950/15 transition-all"
-                >
-                  <span>ورود مستقیم کارشناس IT (ارژنک.پ)</span>
-                  <ArrowLeft className="w-4 h-4 text-emerald-300" />
-                </button>
+                {isInternalMode && onBackToDashboard ? (
+                  <button
+                    onClick={onBackToDashboard}
+                    className="px-6 py-3.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-emerald-950/20 transition-all cursor-pointer"
+                  >
+                    <span>بازگشت به داشبورد مدیریت کلینیک</span>
+                    <ArrowLeft className="w-4 h-4 text-emerald-200" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowLoginModal(true)}
+                    className="px-6 py-3.5 rounded-2xl bg-[#283824] hover:bg-[#1E291B] text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-emerald-950/15 transition-all"
+                  >
+                    <span>ورود مستقیم کارشناس IT (ارژنک.پ)</span>
+                    <ArrowLeft className="w-4 h-4 text-emerald-300" />
+                  </button>
+                )}
                 <button
                   onClick={() => setActiveTab('onboarding')}
                   className="px-5 py-3.5 rounded-2xl bg-white hover:bg-[#F2F4EC] border border-[#D7DDD0] text-[#2C3827] text-xs sm:text-sm font-bold transition-all"
@@ -285,9 +315,10 @@ export const ClinicLandingPage: React.FC<ClinicLandingPageProps> = ({
             <div className="lg:col-span-5 relative">
               <div className="relative rounded-3xl overflow-hidden border border-[#DCE2D6] shadow-xl bg-white">
                 <img
-                  src="https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=900&auto=format&fit=crop&q=80"
+                  src="/media/landing/dog-play-01-960.webp"
                   alt="حیوانات خانگی تحت درمان مهرگان"
                   className="w-full h-80 object-cover"
+                  referrerPolicy="no-referrer"
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6 text-white">
                   <span className="text-[10px] uppercase tracking-wider font-bold text-emerald-300">مهرگان پت کلینیک</span>
@@ -700,14 +731,23 @@ export const ClinicLandingPage: React.FC<ClinicLandingPageProps> = ({
 
             <div className="mt-8 pt-6 border-t border-[#E5E9DF] flex flex-wrap items-center justify-between gap-4">
               <span className="text-xs font-medium text-[#687863]">
-                آماده شروع هستید؟ کارشناس IT می‌تواند بلافاصله لاگین کند.
+                {isInternalMode ? 'مستندات معماری و نقش‌های کلینیک مهرگان برای کادر مدیریت و پرسنل.' : 'آماده شروع هستید؟ کارشناس IT می‌تواند بلافاصله لاگین کند.'}
               </span>
-              <button
-                onClick={() => setShowLoginModal(true)}
-                className="px-6 py-3 rounded-xl bg-[#283824] hover:bg-[#1E2A1B] text-white text-xs font-bold transition-colors"
-              >
-                ورود و آغاز فرآیند دعوت
-              </button>
+              {isInternalMode && onBackToDashboard ? (
+                <button
+                  onClick={onBackToDashboard}
+                  className="px-6 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition-colors cursor-pointer"
+                >
+                  بازگشت به داشبورد کلینیک
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowLoginModal(true)}
+                  className="px-6 py-3 rounded-xl bg-[#283824] hover:bg-[#1E2A1B] text-white text-xs font-bold transition-colors"
+                >
+                  ورود و آغاز فرآیند دعوت
+                </button>
+              )}
             </div>
           </div>
         </section>

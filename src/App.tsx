@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Navbar } from './components/Navbar';
 import { Sidebar, TabId, HIDDEN_TABS } from './components/Sidebar';
 import { VoiceSecretaryModal } from './components/VoiceSecretaryModal';
@@ -41,7 +41,7 @@ import { realtimeChat } from './services/realtimeChatService';
 import { UserProfileModal } from './components/UserProfileModal';
 import { InviteUserModal } from './components/InviteUserModal';
 import { InviteSetupPage } from './components/InviteSetupPage';
-import { ClinicLandingPage } from './components/ClinicLandingPage';
+import { PublicLandingPage } from './components/PublicLandingPage';
 
 // Initial Mock Seed Data
 import {
@@ -82,16 +82,16 @@ import {
 
 const defaultTestPassword = (import.meta as any).env?.VITE_AUTH_BOOTSTRAP_TOKEN || 'mpc-bootstrap-2026-secure-token-x7k9m2';
 const loginTestProfiles = [
-  { username: 'admin', password: (import.meta as any).env?.VITE_TEST_ADMIN_PASSWORD || defaultTestPassword, label: 'مدیر کلینیک' },
-  { username: 'arjanak.p', password: (import.meta as any).env?.VITE_TEST_IT_PASSWORD || defaultTestPassword, label: 'کارشناس IT' },
-  { username: 'dr.amin.bayati', password: (import.meta as any).env?.VITE_TEST_CHIEF_PASSWORD || defaultTestPassword, label: 'مدیر ارشد و پزشک ارشد' },
-  { username: 'doctor.mehregan', password: (import.meta as any).env?.VITE_TEST_DOCTOR_PASSWORD || defaultTestPassword, label: 'دامپزشک' },
-  { username: 'reception.mehregan', password: (import.meta as any).env?.VITE_TEST_RECEPTION_PASSWORD || defaultTestPassword, label: 'پذیرش' },
-  { username: 'grooming.mehregan', password: (import.meta as any).env?.VITE_TEST_GROOMING_PASSWORD || defaultTestPassword, label: 'آرایشگر' },
-  { username: 'cashier.mehregan', password: (import.meta as any).env?.VITE_TEST_CASHIER_PASSWORD || defaultTestPassword, label: 'صندوقدار' },
-  { username: 'petshop.buy', password: (import.meta as any).env?.VITE_TEST_BUY_PASSWORD || defaultTestPassword, label: 'خرید پت‌شاپ' },
-  { username: 'petshop.sales', password: (import.meta as any).env?.VITE_TEST_SALES_PASSWORD || defaultTestPassword, label: 'فروش پت‌شاپ' },
-  { username: 'pet.owner', password: (import.meta as any).env?.VITE_TEST_OWNER_PASSWORD || defaultTestPassword, label: 'سرپرست پت' },
+  { username: 'admin', password: (import.meta as any).env?.VITE_TEST_ADMIN_PASSWORD || defaultTestPassword, label: 'ظ…ط¯غŒط± ع©ظ„غŒظ†غŒع©' },
+  { username: 'arjanak.p', password: (import.meta as any).env?.VITE_TEST_IT_PASSWORD || defaultTestPassword, label: 'ع©ط§ط±ط´ظ†ط§ط³ IT' },
+  { username: 'dr.amin.bayati', password: (import.meta as any).env?.VITE_TEST_CHIEF_PASSWORD || defaultTestPassword, label: 'ظ…ط¯غŒط± ط§ط±ط´ط¯ ظˆ ظ¾ط²ط´ع© ط§ط±ط´ط¯' },
+  { username: 'doctor.mehregan', password: (import.meta as any).env?.VITE_TEST_DOCTOR_PASSWORD || defaultTestPassword, label: 'ط¯ط§ظ…ظ¾ط²ط´ع©' },
+  { username: 'reception.mehregan', password: (import.meta as any).env?.VITE_TEST_RECEPTION_PASSWORD || defaultTestPassword, label: 'ظ¾ط°غŒط±ط´' },
+  { username: 'grooming.mehregan', password: (import.meta as any).env?.VITE_TEST_GROOMING_PASSWORD || defaultTestPassword, label: 'ط¢ط±ط§غŒط´ع¯ط±' },
+  { username: 'cashier.mehregan', password: (import.meta as any).env?.VITE_TEST_CASHIER_PASSWORD || defaultTestPassword, label: 'طµظ†ط¯ظˆظ‚ط¯ط§ط±' },
+  { username: 'petshop.buy', password: (import.meta as any).env?.VITE_TEST_BUY_PASSWORD || defaultTestPassword, label: 'ط®ط±غŒط¯ ظ¾طھâ€Œط´ط§ظ¾' },
+  { username: 'petshop.sales', password: (import.meta as any).env?.VITE_TEST_SALES_PASSWORD || defaultTestPassword, label: 'ظپط±ظˆط´ ظ¾طھâ€Œط´ط§ظ¾' },
+  { username: 'pet.owner', password: (import.meta as any).env?.VITE_TEST_OWNER_PASSWORD || defaultTestPassword, label: 'ط³ط±ظ¾ط±ط³طھ ظ¾طھ' },
 ];
 
 import {
@@ -222,7 +222,7 @@ export default function App() {
     const matchingUser = initialUsers.find((u) => u.role === newRole) || {
       id: `user-${Date.now()}`,
       username: newRole,
-      name: `کاربر (${newRole})`,
+      name: `ع©ط§ط±ط¨ط± (${newRole})`,
       role: newRole,
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
       status: 'active' as const,
@@ -239,7 +239,7 @@ export default function App() {
       setCurrentUser(result.user as User);
       setIsAuthenticated(true);
     } catch (error: any) {
-      setLoginError(error?.message || 'ورود ناموفق بود.');
+      setLoginError(error?.message || 'ظˆط±ظˆط¯ ظ†ط§ظ…ظˆظپظ‚ ط¨ظˆط¯.');
     } finally {
       setIsLoggingIn(false);
     }
@@ -405,9 +405,9 @@ export default function App() {
           },
         });
       } catch (err) {
-        const msg = err instanceof Error ? err.message : 'خطای ناشناخته';
+        const msg = err instanceof Error ? err.message : 'ط®ط·ط§غŒ ظ†ط§ط´ظ†ط§ط®طھظ‡';
         console.error('Hydration failed:', err);
-        setHydrationError(`همگام‌سازی داده‌ها ناموفق: ${msg}`);
+        setHydrationError(`ظ‡ظ…ع¯ط§ظ…â€Œط³ط§ط²غŒ ط¯ط§ط¯ظ‡â€Œظ‡ط§ ظ†ط§ظ…ظˆظپظ‚: ${msg}`);
       } finally {
         isRefreshingRef.current = false;
       }
@@ -491,7 +491,7 @@ export default function App() {
               ...p,
               statusInClinic: status,
               notes: reason
-                ? (p.notes ? `${p.notes} | پذیرش: ${reason}` : `پذیرش: ${reason}`)
+                ? (p.notes ? `${p.notes} | ظ¾ط°غŒط±ط´: ${reason}` : `ظ¾ط°غŒط±ط´: ${reason}`)
                 : p.notes,
               checkInTime:
                 status !== 'not_present'
@@ -585,19 +585,19 @@ export default function App() {
       date: new Date().toLocaleDateString('fa-IR'),
       time: new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }),
       vetId: currentUser.id,
-      vetName: currentUser.name || 'دکتر علیرضا امینی',
-      chiefComplaint: visitData.chiefComplaint || 'ویزیت بالینی',
+      vetName: currentUser.name || 'ط¯ع©طھط± ط¹ظ„غŒط±ط¶ط§ ط§ظ…غŒظ†غŒ',
+      chiefComplaint: visitData.chiefComplaint || 'ظˆغŒط²غŒطھ ط¨ط§ظ„غŒظ†غŒ',
       vitalSigns: visitData.vitalSigns || {
         temperature: 0,
         heartRate: 0,
         respiratoryRate: 0,
         weightKg: pet.weightKg,
-        mucousMembranes: 'طبیعی',
+        mucousMembranes: 'ط·ط¨غŒط¹غŒ',
       },
-      clinicalFindings: visitData.clinicalFindings || 'وضعیت مخاطات طبیعی، لمس شکمی بدون درد.',
-      diagnosis: visitData.diagnosis || 'معاینه بالینی عمومی',
+      clinicalFindings: visitData.clinicalFindings || 'ظˆط¶ط¹غŒطھ ظ…ط®ط§ط·ط§طھ ط·ط¨غŒط¹غŒطŒ ظ„ظ…ط³ ط´ع©ظ…غŒ ط¨ط¯ظˆظ† ط¯ط±ط¯.',
+      diagnosis: visitData.diagnosis || 'ظ…ط¹ط§غŒظ†ظ‡ ط¨ط§ظ„غŒظ†غŒ ط¹ظ…ظˆظ…غŒ',
       prescription: visitData.prescription || [],
-      procedures: visitData.procedures || ['معاینه بالینی'],
+      procedures: visitData.procedures || ['ظ…ط¹ط§غŒظ†ظ‡ ط¨ط§ظ„غŒظ†غŒ'],
       serviceType: visitData.serviceType || 'general_exam',
       specializedType: visitData.specializedType || 'none',
       documentationStatus:
@@ -626,7 +626,7 @@ export default function App() {
       items: [
         {
           id: `item-${Date.now()}`,
-          title: visitData.procedures?.[0] || 'ویزیت و خدمات بالینی',
+          title: visitData.procedures?.[0] || 'ظˆغŒط²غŒطھ ظˆ ط®ط¯ظ…ط§طھ ط¨ط§ظ„غŒظ†غŒ',
           category: 'visit',
           unitPrice: cost,
           quantity: 1,
@@ -639,8 +639,8 @@ export default function App() {
       finalTotal: cost,
       paymentStatus: 'pending',
       paymentMethod: 'pos',
-      cashierName: 'صندوق کلینیک',
-      notes: 'ثبت خودکار فاکتور از ویزیت',
+      cashierName: 'طµظ†ط¯ظˆظ‚ ع©ظ„غŒظ†غŒع©',
+      notes: 'ط«ط¨طھ ط®ظˆط¯ع©ط§ط± ظپط§ع©طھظˆط± ط§ط² ظˆغŒط²غŒطھ',
     };
     setInvoices((prev) => [newInvoice, ...prev]);
     apiClient.saveInvoice(newInvoice).catch((e) => console.error('API saveInvoice error:', e));
@@ -649,7 +649,7 @@ export default function App() {
     setPets((prev) => {
       const next = prev.map((p) =>
         p.id === pet.id
-          ? { ...p, lastVisitDate: 'امروز', statusInClinic: 'in_exam' }
+          ? { ...p, lastVisitDate: 'ط§ظ…ط±ظˆط²', statusInClinic: 'in_exam' }
           : p
       );
       const updatedPet = next.find((p) => p.id === pet.id);
@@ -671,7 +671,7 @@ export default function App() {
         ownerId: targetPet.ownerId,
         ownerName: targetPet.ownerName,
         chiefComplaint: serviceTitle,
-        diagnosis: 'واکسیناسیون دوره‌ای و ایمن‌سازی',
+        diagnosis: 'ظˆط§ع©ط³غŒظ†ط§ط³غŒظˆظ† ط¯ظˆط±ظ‡â€Œط§غŒ ظˆ ط§غŒظ…ظ†â€Œط³ط§ط²غŒ',
         serviceType: 'vaccination',
         procedures: [serviceTitle],
       },
@@ -683,7 +683,7 @@ export default function App() {
       patientId: targetPet.id,
       vaccineName: serviceTitle,
       date: new Date().toLocaleDateString('fa-IR'),
-      nextDueDate: 'یک سال بعد',
+      nextDueDate: 'غŒع© ط³ط§ظ„ ط¨ط¹ط¯',
       price: cost,
       completed: true,
     };
@@ -696,7 +696,7 @@ export default function App() {
         p.id === targetPet.id
           ? {
               ...p,
-              nextVaccineDate: '۱۴۰۴/۰۵/۲۸ (۱ سال بعد)',
+              nextVaccineDate: 'غ±غ´غ°غ´/غ°غµ/غ²غ¸ (غ± ط³ط§ظ„ ط¨ط¹ط¯)',
               isVaccinated: true,
             }
           : p
@@ -716,39 +716,39 @@ export default function App() {
       petBreed: targetPet.breed,
       ownerName: targetPet.ownerName,
       ownerPhone: targetPet.ownerPhone,
-      cageNumber: `باکس VIP مراقبت ویژه شماره ${Math.floor(Math.random() * 20) + 1}`,
-      admittedAt: 'امروز ۱۰:۰۰',
-      dischargePlannedAt: '۱۴۰۳/۰۶/۰۵',
+      cageNumber: `ط¨ط§ع©ط³ VIP ظ…ط±ط§ظ‚ط¨طھ ظˆغŒعکظ‡ ط´ظ…ط§ط±ظ‡ ${Math.floor(Math.random() * 20) + 1}`,
+      admittedAt: 'ط§ظ…ط±ظˆط² غ±غ°:غ°غ°',
+      dischargePlannedAt: 'غ±غ´غ°غ³/غ°غ¶/غ°غµ',
       condition: 'stable',
       assignedStaffId: currentUser.id,
-      assignedStaffName: currentUser.name || 'دکتر کیکاووس کیانی',
-      dietPlan: 'غذای رژیمی روزی ۲ وعده',
-      medicalCareNotes: 'پایش علائم حیاتی و سلامت عمومی',
+      assignedStaffName: currentUser.name || 'ط¯ع©طھط± ع©غŒع©ط§ظˆظˆط³ ع©غŒط§ظ†غŒ',
+      dietPlan: 'ط؛ط°ط§غŒ ط±عکغŒظ…غŒ ط±ظˆط²غŒ غ² ظˆط¹ط¯ظ‡',
+      medicalCareNotes: 'ظ¾ط§غŒط´ ط¹ظ„ط§ط¦ظ… ط­غŒط§طھغŒ ظˆ ط³ظ„ط§ظ…طھ ط¹ظ…ظˆظ…غŒ',
       dailyCost: 750000,
       routineTasks: [
         {
           id: `tsk-${Date.now()}-1`,
-          title: 'وعده اول غذا و آب',
+          title: 'ظˆط¹ط¯ظ‡ ط§ظˆظ„ ط؛ط°ط§ ظˆ ط¢ط¨',
           type: 'food',
-          scheduledTime: '۰۹:۰۰',
+          scheduledTime: 'غ°غ¹:غ°غ°',
           isCompleted: false,
-          instructions: 'غذای رژیمی',
+          instructions: 'ط؛ط°ط§غŒ ط±عکغŒظ…غŒ',
         },
         {
           id: `tsk-${Date.now()}-2`,
-          title: 'نظافت باکس و تهویه',
+          title: 'ظ†ط¸ط§ظپطھ ط¨ط§ع©ط³ ظˆ طھظ‡ظˆغŒظ‡',
           type: 'hygiene',
-          scheduledTime: '۱۴:۰۰',
+          scheduledTime: 'غ±غ´:غ°غ°',
           isCompleted: false,
-          instructions: 'ضدعفونی باکس',
+          instructions: 'ط¶ط¯ط¹ظپظˆظ†غŒ ط¨ط§ع©ط³',
         },
         {
           id: `tsk-${Date.now()}-3`,
-          title: 'پیاده‌روی در محوطه',
+          title: 'ظ¾غŒط§ط¯ظ‡â€Œط±ظˆغŒ ط¯ط± ظ…ط­ظˆط·ظ‡',
           type: 'walk',
-          scheduledTime: '۱۷:۰۰',
+          scheduledTime: 'غ±غ·:غ°غ°',
           isCompleted: false,
-          instructions: 'پیاده‌روی آرام',
+          instructions: 'ظ¾غŒط§ط¯ظ‡â€Œط±ظˆغŒ ط¢ط±ط§ظ…',
         },
       ],
     };
@@ -808,9 +808,9 @@ export default function App() {
 
     const notif: NotificationItem = {
       id: `notif-${Date.now()}`,
-      title: 'نوبت آنلاین تایید شد و لینک بیعانه صادر گردید',
-      message: 'لینک پرداخت شاپرک و بله برای سرپرست ارسال شد و نوبت در صف فعال قرار گرفت.',
-      createdAt: 'هم‌اکنون',
+      title: 'ظ†ظˆط¨طھ ط¢ظ†ظ„ط§غŒظ† طھط§غŒغŒط¯ ط´ط¯ ظˆ ظ„غŒظ†ع© ط¨غŒط¹ط§ظ†ظ‡ طµط§ط¯ط± ع¯ط±ط¯غŒط¯',
+      message: 'ظ„غŒظ†ع© ظ¾ط±ط¯ط§ط®طھ ط´ط§ظ¾ط±ع© ظˆ ط¨ظ„ظ‡ ط¨ط±ط§غŒ ط³ط±ظ¾ط±ط³طھ ط§ط±ط³ط§ظ„ ط´ط¯ ظˆ ظ†ظˆط¨طھ ط¯ط± طµظپ ظپط¹ط§ظ„ ظ‚ط±ط§ط± ع¯ط±ظپطھ.',
+      createdAt: 'ظ‡ظ…â€Œط§ع©ظ†ظˆظ†',
       type: 'system',
       targetRole: 'all',
       isRead: false,
@@ -868,7 +868,7 @@ export default function App() {
       timestamp: new Date().toLocaleTimeString('fa-IR'),
       type: 'success',
       source: 'FileSystem',
-      message: `فایل ${fileId} با موفقیت در مخزن کدهای سرور بازنویسی و ذخیره شد.`,
+      message: `ظپط§غŒظ„ ${fileId} ط¨ط§ ظ…ظˆظپظ‚غŒطھ ط¯ط± ظ…ط®ط²ظ† ع©ط¯ظ‡ط§غŒ ط³ط±ظˆط± ط¨ط§ط²ظ†ظˆغŒط³غŒ ظˆ ط°ط®غŒط±ظ‡ ط´ط¯.`,
     };
     setDevLogs((prev) => [newLog, ...prev]);
   };
@@ -887,7 +887,7 @@ export default function App() {
       timestamp: new Date().toLocaleTimeString('fa-IR'),
       type: 'success',
       source: fileName,
-      message: `[Node.js Runner] اسکریپت «${fileName}» با موفقیت اجرا شد. خروجی تست: All unit tests passed in 42ms.`,
+      message: `[Node.js Runner] ط§ط³ع©ط±غŒظ¾طھ آ«${fileName}آ» ط¨ط§ ظ…ظˆظپظ‚غŒطھ ط§ط¬ط±ط§ ط´ط¯. ط®ط±ظˆط¬غŒ طھط³طھ: All unit tests passed in 42ms.`,
     };
     setDevLogs((prev) => [newLog, ...prev]);
   };
@@ -898,7 +898,7 @@ export default function App() {
       id: `prm-${Date.now()}`,
       prompt,
       generatedCode: `// Generated snippet for: ${prompt}\nconsole.log("Processed IT logic");`,
-      explanation: 'کد توسط دستیار هوش مصنوعی توسعه تولید و آماده بازبینی شد.',
+      explanation: 'ع©ط¯ طھظˆط³ط· ط¯ط³طھغŒط§ط± ظ‡ظˆط´ ظ…طµظ†ظˆط¹غŒ طھظˆط³ط¹ظ‡ طھظˆظ„غŒط¯ ظˆ ط¢ظ…ط§ط¯ظ‡ ط¨ط§ط²ط¨غŒظ†غŒ ط´ط¯.',
       targetFile: targetFile?.path || '/src/automation/index.ts',
       applied: true,
       timestamp: new Date().toLocaleTimeString('fa-IR'),
@@ -917,7 +917,7 @@ export default function App() {
       timestamp: new Date().toLocaleTimeString('fa-IR'),
       type: 'success',
       source: 'HTTP Client',
-      message: `[POST 200 OK] تست اندپوینت «${testItem?.endpoint || '/api'}» با موفقیت انجام شد و وضعیت شاپرک تایید گردید.`,
+      message: `[POST 200 OK] طھط³طھ ط§ظ†ط¯ظ¾ظˆغŒظ†طھ آ«${testItem?.endpoint || '/api'}آ» ط¨ط§ ظ…ظˆظپظ‚غŒطھ ط§ظ†ط¬ط§ظ… ط´ط¯ ظˆ ظˆط¶ط¹غŒطھ ط´ط§ظ¾ط±ع© طھط§غŒغŒط¯ ع¯ط±ط¯غŒط¯.`,
     };
     setDevLogs((prev) => [newLog, ...prev]);
   };
@@ -946,7 +946,7 @@ export default function App() {
       timestamp: new Date().toLocaleTimeString('fa-IR'),
       type: 'warn',
       source: 'DB_Manager',
-      message: '[Wipe Action] کلیه رکوردهای آزمایشی و ساختگی با موفقیت پاکسازی شد. تنها تنظیمات پایه و اطلاعات شناسنامه کلینیک حفظ گردید.',
+      message: '[Wipe Action] ع©ظ„غŒظ‡ ط±ع©ظˆط±ط¯ظ‡ط§غŒ ط¢ط²ظ…ط§غŒط´غŒ ظˆ ط³ط§ط®طھع¯غŒ ط¨ط§ ظ…ظˆظپظ‚غŒطھ ظ¾ط§ع©ط³ط§ط²غŒ ط´ط¯. طھظ†ظ‡ط§ طھظ†ط¸غŒظ…ط§طھ ظ¾ط§غŒظ‡ ظˆ ط§ط·ظ„ط§ط¹ط§طھ ط´ظ†ط§ط³ظ†ط§ظ…ظ‡ ع©ظ„غŒظ†غŒع© ط­ظپط¸ ع¯ط±ط¯غŒط¯.',
     };
     setDevLogs((prev) => [wipeLog, ...prev]);
   };
@@ -987,7 +987,7 @@ export default function App() {
       timestamp: new Date().toLocaleTimeString('fa-IR'),
       type: 'success',
       source: 'DB_Manager',
-      message: '[Seed Action] دیتابیس با موفقیت روی سرور با رکوردهای غنی و پایدار مقداردهی اولیه شد.',
+      message: '[Seed Action] ط¯غŒطھط§ط¨غŒط³ ط¨ط§ ظ…ظˆظپظ‚غŒطھ ط±ظˆغŒ ط³ط±ظˆط± ط¨ط§ ط±ع©ظˆط±ط¯ظ‡ط§غŒ ط؛ظ†غŒ ظˆ ظ¾ط§غŒط¯ط§ط± ظ…ظ‚ط¯ط§ط±ط¯ظ‡غŒ ط§ظˆظ„غŒظ‡ ط´ط¯.',
     };
     setDevLogs((prev) => [seedLog, ...prev]);
   };
@@ -1000,7 +1000,7 @@ export default function App() {
       timestamp: new Date().toLocaleTimeString('fa-IR'),
       type: 'info',
       source: 'MSSQL_Bridge',
-      message: 'داده‌های استخراج‌شده از SQL Server به پایپ‌لاین پالایش داده‌ها منتقل شدند.',
+      message: 'ط¯ط§ط¯ظ‡â€Œظ‡ط§غŒ ط§ط³طھط®ط±ط§ط¬â€Œط´ط¯ظ‡ ط§ط² SQL Server ط¨ظ‡ ظ¾ط§غŒظ¾â€Œظ„ط§غŒظ† ظ¾ط§ظ„ط§غŒط´ ط¯ط§ط¯ظ‡â€Œظ‡ط§ ظ…ظ†طھظ‚ظ„ ط´ط¯ظ†ط¯.',
     };
     setDevLogs((prev) => [migLog, ...prev]);
   };
@@ -1102,7 +1102,7 @@ export default function App() {
       staffId: currentUser.id,
       staffName,
       role,
-      date: 'امروز',
+      date: 'ط§ظ…ط±ظˆط²',
       clockInTime: new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }),
       connectionMethod: 'wifi_auto',
       wifiSsid: 'VetClinic_Staff_5G',
@@ -1186,18 +1186,18 @@ export default function App() {
       .replace(/{{microchip}}/g, pet.microchipNumber)
       .replace(/{{owner_name}}/g, pet.ownerName)
       .replace(/{{owner_phone}}/g, pet.ownerPhone)
-      .replace(/{{clinic_name}}/g, 'کلینیک دامپزشکی هوشمند مهرگان')
+      .replace(/{{clinic_name}}/g, 'ع©ظ„غŒظ†غŒع© ط¯ط§ظ…ظ¾ط²ط´ع©غŒ ظ‡ظˆط´ظ…ظ†ط¯ ظ…ظ‡ط±ع¯ط§ظ†')
       .replace(/{{date}}/g, new Date().toLocaleDateString('fa-IR'))
       .replace(/{{issue_date}}/g, new Date().toLocaleDateString('fa-IR'))
-      .replace(/{{rabies_date}}/g, '۱۴۰۳/۰۵/۰۱')
-      .replace(/{{national_id}}/g, '۰۰۱۹۸۷۶۵۴۳')
+      .replace(/{{rabies_date}}/g, 'غ±غ´غ°غ³/غ°غµ/غ°غ±')
+      .replace(/{{national_id}}/g, 'غ°غ°غ±غ¹غ¸غ·غ¶غµغ´غ³')
       .replace(/{{passport_no}}/g, 'N12345678')
       .replace(/{{destination}}/g, 'Frankfurt (FRA)')
-      .replace(/{{vet_name}}/g, currentUser.name || 'دکتر امین بیاتی (جراح)');
+      .replace(/{{vet_name}}/g, currentUser.name || 'ط¯ع©طھط± ط§ظ…غŒظ† ط¨غŒط§طھغŒ (ط¬ط±ط§ط­)');
 
     setPrintModalData({
       isOpen: true,
-      title: `شناسنامه بهداشتی و کارت واکسیناسیون (${pet.name})`,
+      title: `ط´ظ†ط§ط³ظ†ط§ظ…ظ‡ ط¨ظ‡ط¯ط§ط´طھغŒ ظˆ ع©ط§ط±طھ ظˆط§ع©ط³غŒظ†ط§ط³غŒظˆظ† (${pet.name})`,
       htmlContent: rendered,
     });
   };
@@ -1213,14 +1213,14 @@ export default function App() {
       .replace(/{{pet_name}}/g, invoice.petName)
       .replace(/{{owner_name}}/g, invoice.ownerName)
       .replace(/{{date}}/g, invoice.date)
-      .replace(/{{final_total}}/g, `${invoice.finalTotal.toLocaleString('fa-IR')} تومان`)
-      .replace(/{{subtotal}}/g, `${invoice.subtotal.toLocaleString('fa-IR')} تومان`)
-      .replace(/{{clinic_name}}/g, 'کلینیک دامپزشکی هوشمند مهرگان')
+      .replace(/{{final_total}}/g, `${invoice.finalTotal.toLocaleString('fa-IR')} طھظˆظ…ط§ظ†`)
+      .replace(/{{subtotal}}/g, `${invoice.subtotal.toLocaleString('fa-IR')} طھظˆظ…ط§ظ†`)
+      .replace(/{{clinic_name}}/g, 'ع©ظ„غŒظ†غŒع© ط¯ط§ظ…ظ¾ط²ط´ع©غŒ ظ‡ظˆط´ظ…ظ†ط¯ ظ…ظ‡ط±ع¯ط§ظ†')
       .replace(/{{vet_name}}/g, invoice.cashierName || currentUser.name);
 
     setPrintModalData({
       isOpen: true,
-      title: `فاکتور فروش ${invoice.invoiceNumber} (${format === 'thermal' ? 'فیش حرارتی ۸۰mm' : 'برگه A4'})`,
+      title: `ظپط§ع©طھظˆط± ظپط±ظˆط´ ${invoice.invoiceNumber} (${format === 'thermal' ? 'ظپغŒط´ ط­ط±ط§ط±طھغŒ غ¸غ°mm' : 'ط¨ط±ع¯ظ‡ A4'})`,
       htmlContent: rendered,
     });
   };
@@ -1272,7 +1272,7 @@ export default function App() {
   if (!isAuthenticated) {
     if (inviteToken) return <InviteSetupPage token={inviteToken} />;
     return (
-      <ClinicLandingPage
+      <PublicLandingPage
         onLoginSuccess={(user) => {
           setCurrentUser(user as User);
           setIsAuthenticated(true);
@@ -1287,8 +1287,8 @@ export default function App() {
       <div dir="rtl" className="min-h-screen bg-[#F7F8F3] flex items-center justify-center text-[#2D3A27]">
         <div className="rounded-3xl bg-white border border-[#E6E9DF] px-8 py-6 text-center shadow-lg">
           <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-[#D4E0CD] border-t-[#4A6741]" />
-          <div className="font-black">در حال دریافت اطلاعات واقعی کلینیک…</div>
-          <div className="mt-1 text-xs text-[#5C7457]">لطفاً تا اتصال کامل به پایگاه داده صبر کنید.</div>
+          <div className="font-black">ط¯ط± ط­ط§ظ„ ط¯ط±غŒط§ظپطھ ط§ط·ظ„ط§ط¹ط§طھ ظˆط§ظ‚ط¹غŒ ع©ظ„غŒظ†غŒع©â€¦</div>
+          <div className="mt-1 text-xs text-[#5C7457]">ظ„ط·ظپط§ظ‹ طھط§ ط§طھطµط§ظ„ ع©ط§ظ…ظ„ ط¨ظ‡ ظ¾ط§غŒع¯ط§ظ‡ ط¯ط§ط¯ظ‡ طµط¨ط± ع©ظ†غŒط¯.</div>
         </div>
       </div>
     );
@@ -1323,8 +1323,8 @@ export default function App() {
       {/* Hydration Error Banner */}
       {hydrationError && (
         <div className="mx-auto max-w-7xl px-4 py-2 bg-amber-50 border border-amber-200 text-amber-900 text-sm flex items-center justify-between">
-          <span>⚠ {hydrationError}</span>
-          <button onClick={() => { setHydrationError(null); refreshAllServerData(); }} className="ml-4 text-amber-700 hover:text-amber-900 font-bold text-sm px-2 py-1 rounded border border-amber-300">تلاش مجدد</button>
+          <span>âڑ  {hydrationError}</span>
+          <button onClick={() => { setHydrationError(null); refreshAllServerData(); }} className="ml-4 text-amber-700 hover:text-amber-900 font-bold text-sm px-2 py-1 rounded border border-amber-300">طھظ„ط§ط´ ظ…ط¬ط¯ط¯</button>
         </div>
       )}
 
@@ -1438,16 +1438,16 @@ export default function App() {
             <div className="space-y-6">
               <div className="group bg-white p-6 rounded-[28px] border border-[#E6E9DF] shadow-xs flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-black text-[#2D3A27]">ماژول منشی صوتی هوشمند (VetNLP Core)</h2>
+                  <h2 className="text-lg font-black text-[#2D3A27]">ظ…ط§عکظˆظ„ ظ…ظ†ط´غŒ طµظˆطھغŒ ظ‡ظˆط´ظ…ظ†ط¯ (VetNLP Core)</h2>
                   <p data-hover-description className="text-xs text-[#5C7457]">
-                    تشخیص گفتار محلی و ابری، تطبیق با حیوانات حاضر در لابی و ثبت بدون لمس کیبورد
+                    طھط´ط®غŒطµ ع¯ظپطھط§ط± ظ…ط­ظ„غŒ ظˆ ط§ط¨ط±غŒطŒ طھط·ط¨غŒظ‚ ط¨ط§ ط­غŒظˆط§ظ†ط§طھ ط­ط§ط¶ط± ط¯ط± ظ„ط§ط¨غŒ ظˆ ط«ط¨طھ ط¨ط¯ظˆظ† ظ„ظ…ط³ ع©غŒط¨ظˆط±ط¯
                   </p>
                 </div>
                 <button
                   onClick={() => setIsVoiceSecretaryOpen(true)}
                   className="bg-[#4A6741] hover:bg-[#3D5535] text-white font-black text-xs px-5 py-2.5 rounded-2xl shadow-xs cursor-pointer transition-all active:scale-95"
                 >
-                  باز کردن پنجره صوتی
+                  ط¨ط§ط² ع©ط±ط¯ظ† ظ¾ظ†ط¬ط±ظ‡ طµظˆطھغŒ
                 </button>
               </div>
               <DashboardTab
@@ -1530,7 +1530,7 @@ export default function App() {
                     ownerId: targetPet.ownerId,
                     ownerName: targetPet.ownerName,
                     chiefComplaint: serviceTitle,
-                    diagnosis: `ارائه خدمت فوری و مستقیم: ${serviceTitle}`,
+                    diagnosis: `ط§ط±ط§ط¦ظ‡ ط®ط¯ظ…طھ ظپظˆط±غŒ ظˆ ظ…ط³طھظ‚غŒظ…: ${serviceTitle}`,
                     serviceType: 'general_exam',
                     procedures: [serviceTitle],
                   },
@@ -1626,16 +1626,16 @@ export default function App() {
             <div className="space-y-6">
               <div className="bg-white p-6 rounded-[28px] border border-[#E6E9DF] shadow-xs flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg font-black text-[#2D3A27]">دوربین ورودی و تشخیص هویت مراجعین (AI Vision)</h2>
+                  <h2 className="text-lg font-black text-[#2D3A27]">ط¯ظˆط±ط¨غŒظ† ظˆط±ظˆط¯غŒ ظˆ طھط´ط®غŒطµ ظ‡ظˆغŒطھ ظ…ط±ط§ط¬ط¹غŒظ† (AI Vision)</h2>
                   <p className="text-xs text-[#5C7457]">
-                    پردازش تصویری چهره و نژاد حیوان با مدل چندوجهی Gemini Vision
+                    ظ¾ط±ط¯ط§ط²ط´ طھطµظˆغŒط±غŒ ع†ظ‡ط±ظ‡ ظˆ ظ†عکط§ط¯ ط­غŒظˆط§ظ† ط¨ط§ ظ…ط¯ظ„ ع†ظ†ط¯ظˆط¬ظ‡غŒ Gemini Vision
                   </p>
                 </div>
                 <button
                   onClick={() => setIsVisitorCameraOpen(true)}
                   className="bg-[#4A6741] hover:bg-[#3D5535] text-white font-black text-xs px-5 py-2.5 rounded-2xl shadow-xs cursor-pointer transition-all active:scale-95"
                 >
-                  اجرای اسکنر دوربین ورودی
+                  ط§ط¬ط±ط§غŒ ط§ط³ع©ظ†ط± ط¯ظˆط±ط¨غŒظ† ظˆط±ظˆط¯غŒ
                 </button>
               </div>
               <DashboardTab
@@ -1700,23 +1700,23 @@ export default function App() {
         onCreateAppointment={(petId, title) =>
           handleCreateAppointment({
             petId,
-            petName: pets.find((p) => p.id === petId)?.name || 'پت',
-            petBreed: pets.find((p) => p.id === petId)?.breed || 'نژاد',
+            petName: pets.find((p) => p.id === petId)?.name || 'ظ¾طھ',
+            petBreed: pets.find((p) => p.id === petId)?.breed || 'ظ†عکط§ط¯',
             ownerId: pets.find((p) => p.id === petId)?.ownerId || 'own-1',
-            ownerName: pets.find((p) => p.id === petId)?.ownerName || 'سرپرست',
+            ownerName: pets.find((p) => p.id === petId)?.ownerName || 'ط³ط±ظ¾ط±ط³طھ',
             ownerPhone: pets.find((p) => p.id === petId)?.ownerPhone || '09120000000',
-            date: 'امروز',
-            timeSlot: '۱۸:۰۰ - ۱۸:۳۰',
+            date: 'ط§ظ…ط±ظˆط²',
+            timeSlot: 'غ±غ¸:غ°غ° - غ±غ¸:غ³غ°',
             serviceType: title,
             vetId: 'u-1',
-            vetName: 'دکتر امین بیاتی',
+            vetName: 'ط¯ع©طھط± ط§ظ…غŒظ† ط¨غŒط§طھغŒ',
             status: 'scheduled',
             appointmentType: 'future_appointment',
             requiresDeposit: false,
             depositAmount: 0,
             depositStatus: 'none',
             reminder24hSent: false,
-            notes: 'ثبت شده توسط منشی صوتی هوشمند کلینیک',
+            notes: 'ط«ط¨طھ ط´ط¯ظ‡ طھظˆط³ط· ظ…ظ†ط´غŒ طµظˆطھغŒ ظ‡ظˆط´ظ…ظ†ط¯ ع©ظ„غŒظ†غŒع©',
           })
         }
       />
@@ -1734,25 +1734,25 @@ export default function App() {
         onRegisterQuickVisitor={(desc, tempId) => {
           const quickPet: Pet = {
             id: `pet-quick-${Date.now()}`,
-            name: `مراجع جدید (${tempId})`,
-            species: 'سگ',
-            breed: 'پامرانین (تشخیص دوربین)',
-            gender: 'نر',
-            birthDate: '۱۴۰۲/۰۱/۰۱',
-            ageText: 'تقریبی ۲ سال',
+            name: `ظ…ط±ط§ط¬ط¹ ط¬ط¯غŒط¯ (${tempId})`,
+            species: 'ط³ع¯',
+            breed: 'ظ¾ط§ظ…ط±ط§ظ†غŒظ† (طھط´ط®غŒطµ ط¯ظˆط±ط¨غŒظ†)',
+            gender: 'ظ†ط±',
+            birthDate: 'غ±غ´غ°غ²/غ°غ±/غ°غ±',
+            ageText: 'طھظ‚ط±غŒط¨غŒ غ² ط³ط§ظ„',
             weightKg: 4.0,
-            color: 'کرم',
+            color: 'ع©ط±ظ…',
             microchipNumber: `CHIP-TEMP-${Math.floor(Math.random() * 89999 + 10000)}`,
             photoUrl:
               'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=500&auto=format&fit=crop&q=80',
             ownerId: `own-quick-${Date.now()}`,
-            ownerName: 'مراجعه‌کننده ورودی لابی',
+            ownerName: 'ظ…ط±ط§ط¬ط¹ظ‡â€Œع©ظ†ظ†ط¯ظ‡ ظˆط±ظˆط¯غŒ ظ„ط§ط¨غŒ',
             ownerPhone: '09120000000',
             statusInClinic: 'waiting',
             checkInTime: new Date().toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }),
-            lastVisitDate: 'امروز (تشکیل پرونده موقت)',
-            nextVaccineDate: '۱۴۰۴/۰۱/۰۱',
-            nextParasiteDate: '۱۴۰۳/۰۷/۰۱',
+            lastVisitDate: 'ط§ظ…ط±ظˆط² (طھط´ع©غŒظ„ ظ¾ط±ظˆظ†ط¯ظ‡ ظ…ظˆظ‚طھ)',
+            nextVaccineDate: 'غ±غ´غ°غ´/غ°غ±/غ°غ±',
+            nextParasiteDate: 'غ±غ´غ°غ³/غ°غ·/غ°غ±',
             allergies: [],
             isVaccinated: false,
             notes: desc,
@@ -1842,7 +1842,7 @@ export default function App() {
                 onClick={() => setPrintModalData({ ...printModalData, isOpen: false })}
                 className="p-1.5 text-[#5C7457] hover:text-[#2D3A27] rounded-lg cursor-pointer"
               >
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -1858,13 +1858,13 @@ export default function App() {
                 onClick={() => setPrintModalData({ ...printModalData, isOpen: false })}
                 className="px-4 py-2 bg-[#E6E9DF] hover:bg-[#D4E0CD] text-[#2D3A27] rounded-xl cursor-pointer transition-colors"
               >
-                بستن
+                ط¨ط³طھظ†
               </button>
               <button
                 onClick={() => window.print()}
                 className="px-5 py-2 bg-[#4A6741] hover:bg-[#3D5535] text-white rounded-xl shadow-xs cursor-pointer transition-all active:scale-95"
               >
-                چاپ نهایی / ارسال به پرینتر
+                ع†ط§ظ¾ ظ†ظ‡ط§غŒغŒ / ط§ط±ط³ط§ظ„ ط¨ظ‡ ظ¾ط±غŒظ†طھط±
               </button>
             </div>
           </div>
