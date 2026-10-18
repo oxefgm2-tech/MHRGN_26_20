@@ -80,7 +80,7 @@ export const RoleBasedDashboard: React.FC<DashboardTabProps> = ({
   const safeInvoices = invoices || [];
   const safeAttendance = attendance || [];
 
-  const presentPets = safePets.filter((p) => p && p.statusInClinic !== 'not_present');
+  const presentPets = safePets.filter((p) => p && ['waiting','in_exam','in_grooming','in_boarding'].includes(p.statusInClinic));
   const waitingPets = safePets.filter((p) => p && (p.statusInClinic === 'waiting' || p.statusInClinic === 'in_exam'));
   const todayAppointments = safeAppointments.filter((a) => a && (a.date === 'امروز' || a.date?.includes('امروز')));
   const totalRevenueToday = safeInvoices.reduce((acc, inv) => acc + (inv?.paymentStatus === 'paid' ? (inv.finalTotal || 0) : 0), 0);

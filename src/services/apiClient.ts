@@ -178,7 +178,7 @@ export const apiClient = {
   },
 
   async logout(): Promise<void> {
-    try { await clinicFetch('/api/auth/logout', { method: 'POST' }); } finally {
+    try { await clinicFetch('/api/auth/logout', { method: 'POST' }); } catch {} finally {
       localStorage.removeItem(STORAGE_KEY_AUTH_TOKEN);
     }
   },
