@@ -39,3 +39,18 @@ __pycache__/
 .aistudio/
 assets/.aistudio/
 bun.lock
+
+# === Backups created during repairs (2026-10-18) ===
+*.bak
+*.before-*.bak
+src/App.tsx.bak
+src/components/tabs/DashboardTab.tsx.before-filter-fix.bak
+src/services/apiClient.ts.before-logout-fix.bak
+
+# === Local scripts (not part of the project) ===
+_check_api.ps1
+_install_service.ps1
+_start_and_check.ps1
+run-server.cmd
+_nobiwatch_investigation.json
+_nobiwatch_fixplan.json
